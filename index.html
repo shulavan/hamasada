@@ -12,12 +12,10 @@
       --card: #ffffff;
       --text: #1e293b;
       --border: #cbd5e1;
-      --accent: #f59e0b;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background: var(--bg); color: var(--text); padding-bottom: 240px; }
 
-    /* ヘッダー */
     header {
       background: var(--primary); color: white; padding: 12px 16px; display: flex;
       justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100;
@@ -27,7 +25,6 @@
     .btn-sm { background: rgba(255,255,255,0.2); color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 0.85rem; cursor: pointer; }
     .menu-btn { font-size: 1.4rem; background: none; border: none; color: white; cursor: pointer; }
 
-    /* ステータスバー */
     #status-bar {
       background: #e2e8f0; text-align: center; font-size: 0.8rem; padding: 6px;
       color: #475569; position: sticky; top: 48px; z-index: 99; font-weight: bold;
@@ -35,7 +32,6 @@
     #status-bar.saving { background: #fef08a; color: #854d0e; }
     #status-bar.saved { background: #bbf7d0; color: #166534; }
 
-    /* サイドメニュー */
     .drawer {
       position: fixed; top: 0; right: -280px; width: 280px; height: 100%;
       background: white; z-index: 200; transition: right 0.3s ease; box-shadow: -2px 0 10px rgba(0,0,0,0.1); padding: 20px;
@@ -47,10 +43,8 @@
     .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 150; display: none; }
     .overlay.open { display: block; }
 
-    /* メインコンテナ */
     .container { padding: 12px; max-width: 600px; margin: 0 auto; }
 
-    /* カレンダー */
     .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; background: var(--border); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
     .cal-header { background: #e2e8f0; text-align: center; font-size: 0.75rem; font-weight: bold; padding: 6px 0; }
     .cal-day {
@@ -61,13 +55,11 @@
     .cal-day.today { background: #eff6ff; border: 2px solid var(--primary-light); }
     .cal-icons { display: flex; flex-wrap: wrap; gap: 1px; font-size: 0.7rem; }
 
-    /* フォーム */
     .view-card { background: white; border-radius: 8px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 16px; }
     .form-group { margin-bottom: 14px; }
     .form-group label { display: block; font-size: 0.85rem; font-weight: bold; color: #334155; margin-bottom: 4px; }
     .form-control { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.95rem; }
 
-    /* 改良版 日付タブ (背景色変化) */
     .tabs { display: flex; gap: 4px; border-bottom: 2px solid var(--border); margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; }
     .tab {
       padding: 8px 12px; font-size: 0.85rem; font-weight: bold; color: #475569; cursor: pointer;
@@ -75,7 +67,6 @@
     }
     .tab.active { color: white; background: var(--primary-light); border-color: var(--primary-light); }
 
-    /* テンキーボード */
     .numpad-overlay {
       position: fixed; bottom: 0; left: 0; right: 0; background: #cbd5e1; padding: 12px;
       border-top-left-radius: 16px; border-top-right-radius: 16px; z-index: 300; display: none;
@@ -87,17 +78,14 @@
     .np-btn:active { background: #f1f5f9; }
     .np-btn-action { background: var(--primary-light); color: white; box-shadow: 0 2px 0 #1d4ed8; }
 
-    /* リスト表示 */
     .list-item { background: white; border: 1px solid var(--border); border-radius: 6px; padding: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
     .list-item .title { font-weight: bold; font-size: 0.95rem; }
     .list-item .sub { font-size: 0.8rem; color: #64748b; margin-top: 2px; }
 
-    /* チップ選択 */
     .chip-group { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
     .chip { background: #e2e8f0; padding: 6px 12px; border-radius: 16px; font-size: 0.8rem; cursor: pointer; font-weight: 500; }
     .chip.active { background: var(--primary-light); color: white; }
 
-    /* 保存ボタン */
     .btn-save {
       background: #16a34a; color: white; border: none; width: 100%; padding: 14px;
       font-size: 1.1rem; font-weight: bold; border-radius: 8px; margin-top: 16px;
@@ -105,7 +93,6 @@
     }
     .btn-save:active { background: #15803d; }
 
-    /* 初回 担当者選択 Modal */
     .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 400; display: flex; align-items: center; justify-content: center; padding: 20px; }
     .modal-card { background: white; border-radius: 12px; width: 100%; max-width: 360px; padding: 20px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
     .modal-card h3 { margin-bottom: 12px; color: var(--primary); }
@@ -137,7 +124,6 @@
     </div>
   </div>
 
-  <!-- ドロワーメニュー -->
   <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
   <div class="drawer" id="drawer">
     <h3>メニュー</h3>
@@ -152,7 +138,6 @@
   </div>
 
   <div class="container">
-    <!-- 1. カレンダー表示画面 -->
     <div id="view-calendar">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;" id="cal-header-nav">
         <button class="btn-sm" style="background:#64748b" onclick="moveMonth(-1)">◀ 前月</button>
@@ -163,7 +148,6 @@
       <div id="day-detail-list" style="margin-top: 16px;"></div>
     </div>
 
-    <!-- 2. 売掛入力・編集画面 -->
     <div id="view-urikake-form" style="display: none;">
       <div class="view-card">
         <h3 style="margin-bottom: 12px;" id="form-title">売掛登録・編集</h3>
@@ -182,7 +166,6 @@
           </div>
         </div>
 
-        <!-- 6段階 日付＆メモ タブUI -->
         <div class="form-group">
           <label>進捗ステータス・日付・メモ</label>
           <div class="tabs">
@@ -200,7 +183,6 @@
           </div>
         </div>
 
-        <!-- 品名・産地（青果・水産マスタ） -->
         <div class="form-group" id="item-section">
           <label>品名・産地マスタ選択</label>
           <div class="chip-group" style="margin-bottom: 8px;">
@@ -216,7 +198,6 @@
           <input type="text" class="form-control" id="u-産地" placeholder="産地（直接入力可能）" style="margin-top: 4px;">
         </div>
 
-        <!-- 金額入力（テンキー連動＆自動スクロール） -->
         <div class="form-group" id="price-section">
           <label>単価 / 販売金額（タップでテンキー表示）</label>
           <div style="display: flex; gap: 8px;">
@@ -225,13 +206,11 @@
           </div>
         </div>
 
-        <!-- 手動保存ボタン -->
         <button class="btn-save" onclick="saveUrikakeData()">💾 保存する</button>
         <button class="btn-sm" style="background:#64748b; width:100%; padding:12px; margin-top:8px;" onclick="showView('calendar')">キャンセル・戻る</button>
       </div>
     </div>
 
-    <!-- 3. マスタ編集・閲覧画面 -->
     <div id="view-master" style="display: none;">
       <div class="view-card">
         <h3 id="master-title">マスタ一覧</h3>
@@ -241,7 +220,6 @@
     </div>
   </div>
 
-  <!-- テンキー画面 -->
   <div class="numpad-overlay" id="numpad">
     <div class="numpad-grid">
       <button class="np-btn" onclick="npInput('7')">7</button>
@@ -268,7 +246,7 @@
   let appState = {
     urikake: [], kaikake: [], kokyaku: [], nakaoroshi: [], tando: [], seika: [], suisan: [],
     currentDate: new Date(),
-    calViewMode: 'month', // 'month' or '2week'
+    calViewMode: 'month',
     activeTab: '依頼',
     currentNumTarget: null,
     currentCategory: '青果',
@@ -277,14 +255,13 @@
 
   let currentFormData = {};
 
-  // 起動時初期化
+  // 起動時：データ同期完了後にモーダル判定を実施
   window.onload = async () => {
     await fetchAllData();
     checkStaffSelection();
     renderCalendar();
   };
 
-  // 全データ取得
   async function fetchAllData() {
     updateStatus("データ同期中...", "saving");
     try {
@@ -303,7 +280,6 @@
     }
   }
 
-  // 初回 担当者選択チェック
   function checkStaffSelection() {
     if (!appState.selectedStaffId) {
       document.getElementById("staff-modal").style.display = "flex";
@@ -332,7 +308,6 @@
     }
   }
 
-  // 売掛データ保存（手動）
   async function saveUrikakeData() {
     syncTabValueToState();
 
@@ -375,7 +350,6 @@
     }
   }
 
-  // 日付＆メモ タブ切り替え
   function switchDateTab(tabName) {
     syncTabValueToState();
     appState.activeTab = tabName;
@@ -403,7 +377,6 @@
     currentFormData[memoKey] = document.getElementById("u-memo-input").value;
   }
 
-  // カレンダー描画（月表示 / 2週間表示）
   function renderCalendar() {
     const container = document.getElementById("calendar-container");
     container.innerHTML = "";
@@ -430,11 +403,10 @@
         appendDayCell(grid, d, dateStr);
       }
     } else {
-      // 2週間表示（今週日曜〜来週土曜の14日間）
       document.getElementById("cal-header-nav").style.display = "none";
       const today = new Date();
       const startSun = new Date(today);
-      startSun.setDate(today.getDate() - today.getDay()); // 今週の日曜日
+      startSun.setDate(today.getDate() - today.getDay());
 
       for(let i=0; i<14; i++) {
         const d = new Date(startSun);
@@ -497,7 +469,6 @@
     });
   }
 
-  // カテゴリ切替 & 品名コンボボックス連動
   function selectCategory(cat) {
     appState.currentCategory = cat;
     document.getElementById("chip-seika").classList.toggle("active", cat === '青果');
@@ -529,12 +500,10 @@
     });
   }
 
-  // テンキー＆自動スクロール
   function openNumpad(targetId) {
     appState.currentNumTarget = document.getElementById(targetId);
     document.getElementById("numpad").classList.add("open");
 
-    // テンキー上の要素が見える位置に強制スクロール
     setTimeout(() => {
       document.getElementById("price-section").scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 100);
@@ -551,7 +520,6 @@
     appState.currentNumTarget.value = appState.currentNumTarget.value.slice(0, -1);
   }
 
-  // 画面移動
   function showView(viewName) {
     document.getElementById("view-calendar").style.display = viewName === 'calendar' ? 'block' : 'none';
     document.getElementById("view-urikake-form").style.display = viewName === 'urikake' ? 'block' : 'none';
@@ -575,7 +543,7 @@
   }
 
   function openEditUrikake(id) {
-    const item = appState.urikake.find(u => String(u.売掛ID) === String(id));
+    const item = appState.urikake.find(u => String(u.売掛ID).trim() === String(id).trim());
     if(!item) return;
     currentFormData = { ...item };
     document.getElementById("u-id").value = item.売掛ID;
@@ -592,7 +560,6 @@
     showView('urikake');
   }
 
-  // マスタ表示
   function showMasterView(type) {
     showView('master');
     const list = document.getElementById("master-list");
@@ -623,7 +590,6 @@
     });
   }
 
-  // ユーティリティ
   function populateDropdowns() {
     const kSelect = document.getElementById("u-顧客ID");
     kSelect.innerHTML = `<option value="">顧客選択</option>`;
@@ -635,8 +601,9 @@
     mSelect.innerHTML = `<option value="">担当者を選択...</option>`;
 
     appState.tando.forEach(t => {
-      tSelect.innerHTML += `<option value="${t.担当ID}">${t.担当名}</option>`;
-      mSelect.innerHTML += `<option value="${t.担当ID}">${t.担当名}</option>`;
+      const name = t.担当名 || t.名前 || t.担当者名 || "名称未設定";
+      tSelect.innerHTML += `<option value="${t.担当ID}">${name}</option>`;
+      mSelect.innerHTML += `<option value="${t.担当ID}">${name}</option>`;
     });
 
     if (appState.selectedStaffId) {
