@@ -53,7 +53,7 @@
     .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 150; display: none; }
     .overlay.open { display: block; }
 
-    /* メインコンテナ（縦幅一杯を確保） */
+    /* メインコンテナ */
     .container {
       flex: 1;
       padding: 6px;
@@ -62,7 +62,7 @@
       width: 100%;
       display: flex;
       flex-direction: column;
-      min-height: 0; /* flex縮小を許可 */
+      min-height: 0;
       overflow: hidden;
     }
 
@@ -72,7 +72,7 @@
       flex-direction: column;
       height: 100%;
       min-height: 0;
-      touch-action: pan-y; /* スワイプ判定用 */
+      touch-action: pan-y;
     }
 
     #cal-header-nav {
@@ -107,7 +107,7 @@
     .cal-day .day-num { font-size: 0.75rem; font-weight: bold; color: #475569; }
     .cal-day.today { background: #eff6ff; border: 2px solid var(--primary-light); }
 
-    /* 2週間表示用（手書きレイアウト＆縦画面ピッタリ拡大） */
+    /* 2週間表示用 */
     .calendar-grid-2week {
       display: grid;
       grid-template-columns: 32px 1fr 1fr;
@@ -133,7 +133,7 @@
     .cal-2week-day .day-num { font-size: 0.8rem; font-weight: bold; color: #475569; margin-bottom: 2px; }
     .cal-2week-day .cal-icons { display: flex; flex-wrap: wrap; gap: 3px; font-size: 1.1rem; line-height: 1.2; }
 
-    /* フォーム・マスタ画面（縦スクロール許可） */
+    /* フォーム・マスタ画面 */
     #view-urikake-form, #view-master {
       height: 100%;
       overflow-y: auto;
@@ -145,12 +145,14 @@
     .form-group label { display: block; font-size: 0.85rem; font-weight: bold; color: #334155; margin-bottom: 4px; }
     .form-control { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.95rem; }
 
+    /* タブ切り替え（売掛/買掛・日付） */
     .tabs { display: flex; gap: 4px; border-bottom: 2px solid var(--border); margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; }
     .tab {
       padding: 8px 12px; font-size: 0.85rem; font-weight: bold; color: #475569; cursor: pointer;
       white-space: nowrap; border-radius: 6px 6px 0 0; background: #e2e8f0; border: 1px solid var(--border); border-bottom: none;
     }
     .tab.active { color: white; background: var(--primary-light); border-color: var(--primary-light); }
+    .tab.active-kaikake { color: white; background: #dc2626; border-color: #dc2626; }
 
     .numpad-overlay {
       position: fixed; bottom: 0; left: 0; right: 0; background: #cbd5e1; padding: 12px;
@@ -163,7 +165,7 @@
     .np-btn-action { background: var(--primary-light); color: white; box-shadow: 0 2px 0 #1d4ed8; }
 
     .list-item { background: white; border: 1px solid var(--border); border-radius: 6px; padding: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
-    .list-item .title { font-weight: bold; font-size: 0.95rem; }
+    .list-item .title { font-weight: bold; font-size: 0.95rem; display: flex; align-items: center; }
     .list-item .sub { font-size: 0.8rem; color: #64748b; margin-top: 2px; }
 
     .chip-group { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
@@ -221,7 +223,8 @@
     <h3>メニュー</h3>
     <ul>
       <li onclick="showView('calendar')">📅 カレンダー/TOP</li>
-      <li onclick="openNewUrikake()">➕ 新規売掛登録</li>
+      <li onclick="openNewRecord('urikake')">📈 新規売掛（販売）登録</li>
+      <li onclick="openNewRecord('kaikake')">📉 新規買掛（仕入）登録</li>
       <li onclick="showMasterView('kokyaku')">👥 顧客マスタ一覧</li>
       <li onclick="showMasterView('nakaoroshi')">🏢 仲卸マスタ一覧</li>
       <li onclick="showMasterView('tando')">👨‍💼 担当者マスタ一覧</li>
@@ -241,32 +244,31 @@
 
     <div id="view-urikake-form" style="display: none;">
       <div class="view-card">
-        <h3 style="margin-bottom: 12px;" id="form-title">売掛登録・編集</h3>
+        <!-- 伝票種別切替タブ（売掛 / 買掛） -->
+        <div class="tabs" style="margin-bottom: 16px;">
+          <div class="tab active" id="type-tab-urikake" onclick="switchFormType('urikake')">📈 売掛（販売）</div>
+          <div class="tab" id="type-tab-kaikake" onclick="switchFormType('kaikake')">📉 買掛（仕入）</div>
+        </div>
+
         <input type="hidden" id="u-id">
 
         <div class="form-group">
           <label>依頼件名</label>
-          <input type="text" class="form-control" id="u-依頼件名" placeholder="例: 〇〇様 本日納品分">
+          <input type="text" class="form-control" id="u-依頼件名" placeholder="例: 〇〇様 本日分">
         </div>
 
         <div class="form-group">
-          <label>顧客・担当</label>
+          <label id="partner-label">顧客・担当</label>
           <div style="display: flex; gap: 8px;">
-            <select class="form-control" id="u-顧客ID"><option value="">顧客選択</option></select>
+            <select class="form-control" id="u-顧客ID"><option value="">選択...</option></select>
             <select class="form-control" id="u-担当ID" onchange="onStaffChangedInForm()"><option value="">担当選択</option></select>
           </div>
         </div>
 
         <div class="form-group">
           <label>進捗ステータス・日付・メモ</label>
-          <div class="tabs">
-            <div class="tab active" onclick="switchDateTab('依頼')">👂 依頼</div>
-            <div class="tab" onclick="switchDateTab('見積')">📃 見積</div>
-            <div class="tab" onclick="switchDateTab('納品')">🚚 納品</div>
-            <div class="tab" onclick="switchDateTab('請求')">請求</div>
-            <div class="tab" onclick="switchDateTab('入金')">入金</div>
-            <div class="tab" onclick="switchDateTab('キャンセル')">キャンセル</div>
-          </div>
+          <!-- 動的生成される日付タブ -->
+          <div class="tabs" id="date-tabs-container"></div>
 
           <div id="tab-date-container">
             <input type="date" class="form-control" id="u-date-input" style="margin-bottom: 8px;">
@@ -290,14 +292,14 @@
         </div>
 
         <div class="form-group" id="price-section">
-          <label>単価 / 販売金額（タップでテンキー表示）</label>
+          <label id="price-label">単価 / 販売金額（タップでテンキー表示）</label>
           <div style="display: flex; gap: 8px;">
             <input type="number" class="form-control" id="u-単価" placeholder="単価" readonly onclick="openNumpad('u-単価')">
-            <input type="number" class="form-control" id="u-販売金額" placeholder="販売金額" readonly onclick="openNumpad('u-販売金額')">
+            <input type="number" class="form-control" id="u-販売金額" placeholder="金額" readonly onclick="openNumpad('u-販売金額')">
           </div>
         </div>
 
-        <button class="btn-save" onclick="saveUrikakeData()">💾 保存する</button>
+        <button class="btn-save" id="btn-save-submit" onclick="saveFormData()">💾 保存する</button>
         <button class="btn-sm" style="background:#64748b; width:100%; padding:12px; margin-top:8px;" onclick="showView('calendar')">キャンセル・戻る</button>
       </div>
     </div>
@@ -329,7 +331,7 @@
     </div>
   </div>
 
-  <button class="fab" onclick="openNewUrikake()">＋</button>
+  <button class="fab" onclick="openNewRecord('urikake')">＋</button>
 
 <script>
   const GAS_URL = "https://script.google.com/macros/s/AKfycbyc0iwAx9wwaamaxGGpNEcbR3CJ-9WY06aLIGmdYYwx7ExX3X7BugbeHuSP1yG_dJOW/exec";
@@ -338,6 +340,7 @@
     urikake: [], kaikake: [], kokyaku: [], nakaoroshi: [], tando: [], seika: [], suisan: [],
     currentDate: new Date(),
     calViewMode: 'month',
+    currentFormType: 'urikake', // 'urikake' or 'kaikake'
     activeTab: '依頼',
     currentNumTarget: null,
     currentCategory: '青果',
@@ -413,7 +416,6 @@
     const diffX = endX - startX;
     const diffY = endY - startY;
 
-    // 横方向のスワイプ判定（縦移動より大きく、40px以上動いた場合）
     if (Math.abs(diffX) > 40 && Math.abs(diffX) > Math.abs(diffY) * 1.2) {
       if (diffX < 0) {
         moveCalendar(1);  // 左スワイプ -> 次へ
@@ -533,8 +535,8 @@
       if(u.納品日 === dateStr) icons.push("🚚");
     });
     appState.kaikake.forEach(k => {
-      if(k.発注日 === dateStr) icons.push("👄");
-      if(k.入荷日 === dateStr) icons.push("📦");
+      if(k.発注日 === dateStr || k.依頼日 === dateStr) icons.push("👄");
+      if(k.入荷日 === dateStr || k.納品日 === dateStr) icons.push("📦");
     });
     return icons;
   }
@@ -554,23 +556,55 @@
     renderCalendar();
   }
 
-  /* --- 日付タップ時モーダル処理 --- */
+  /* --- 日付タップ時モーダル処理（買掛優先表示） --- */
   function onDateClick(dateStr) {
     document.getElementById("detail-modal-title").innerText = `📅 ${dateStr} の案件`;
     const list = document.getElementById("day-detail-list");
     list.innerHTML = "";
 
-    const items = appState.urikake.filter(u => u.依頼日 === dateStr || u.納品日 === dateStr || u.見積日 === dateStr);
-    if(items.length === 0) {
+    // 買掛データの検索
+    const kaikakeItems = appState.kaikake.filter(k => 
+      k.発注日 === dateStr || k.入荷日 === dateStr || k.請求日 === dateStr || k.支払日 === dateStr || k.依頼日 === dateStr || k.納品日 === dateStr
+    );
+
+    // 売掛データの検索
+    const urikakeItems = appState.urikake.filter(u => 
+      u.依頼日 === dateStr || u.見積日 === dateStr || u.納品日 === dateStr || u.請求日 === dateStr || u.入金日 === dateStr
+    );
+
+    if(kaikakeItems.length === 0 && urikakeItems.length === 0) {
       list.innerHTML = `<p style="font-size:0.85rem; color:#64748b; padding:12px; text-align:center;">この日の登録データはありません</p>`;
     } else {
-      items.forEach(item => {
-        const kokyaku = appState.kokyaku.find(k => String(k.顧客ID) === String(item.顧客ID)) || {};
+      // 1. 買掛優先表示（赤線＆赤バッジ）
+      kaikakeItems.forEach(item => {
+        const nakaoroshi = appState.nakaoroshi.find(n => 
+          String(n.仲卸ID || n.ID || Object.values(n)[0]) === String(item.仲卸ID || item.顧客ID)
+        ) || {};
+        const id = item.買掛ID || item.ID || Object.values(item)[0];
+        
         list.innerHTML += `
-          <div class="list-item" onclick="closeDetailModal(); openEditUrikake('${item.売掛ID}')">
+          <div class="list-item" style="border-left: 4px solid #dc2626;" onclick="closeDetailModal(); openEditForm('${id}', 'kaikake')">
             <div>
-              <div class="title">${item.依頼件名 || '（無題）'}</div>
-              <div class="sub">顧客: ${kokyaku.顧客名 || '未設定'} | 品名: ${item.品名 || '-'}</div>
+              <div class="title"><span style="background:#fee2e2; color:#dc2626; font-size:0.75rem; padding:2px 6px; border-radius:4px; margin-right:6px;">買掛</span>${item.依頼件名 || item.件名 || '（無題）'}</div>
+              <div class="sub">仲卸: ${nakaoroshi.仲卸名 || nakaoroshi.名前 || '未設定'} | 品名: ${item.品名 || '-'}</div>
+            </div>
+            <div style="font-size:1.2rem;">✏️</div>
+          </div>
+        `;
+      });
+
+      // 2. 売掛表示（青線＆青バッジ）
+      urikakeItems.forEach(item => {
+        const kokyaku = appState.kokyaku.find(k => 
+          String(k.顧客ID || k.ID || Object.values(k)[0]) === String(item.顧客ID)
+        ) || {};
+        const id = item.売掛ID || item.ID || Object.values(item)[0];
+
+        list.innerHTML += `
+          <div class="list-item" style="border-left: 4px solid #2563eb;" onclick="closeDetailModal(); openEditForm('${id}', 'urikake')">
+            <div>
+              <div class="title"><span style="background:#dbeafe; color:#2563eb; font-size:0.75rem; padding:2px 6px; border-radius:4px; margin-right:6px;">売掛</span>${item.依頼件名 || '（無題）'}</div>
+              <div class="sub">顧客: ${kokyaku.顧客名 || kokyaku.名前 || '未設定'} | 品名: ${item.品名 || '-'}</div>
             </div>
             <div style="font-size:1.2rem;">✏️</div>
           </div>
@@ -587,15 +621,85 @@
     }
   }
 
-  function populateDropdowns() {
-    const kSelect = document.getElementById("u-顧客ID");
-    kSelect.innerHTML = `<option value="">顧客選択</option>`;
-    appState.kokyaku.forEach(k => {
-      const id = k.顧客ID || k.ID || Object.values(k)[0] || "";
-      const name = k.顧客名 || k.名前 || k.社名 || Object.values(k)[1] || "名称未設定";
-      kSelect.innerHTML += `<option value="${id}">${name}</option>`;
-    });
+  /* --- フォーム種別切り替え（売掛 / 買掛） --- */
+  function switchFormType(type, resetInput = false) {
+    appState.currentFormType = type;
 
+    const isKaikake = type === 'kaikake';
+
+    // タブのハイライト切替
+    const urikakeTab = document.getElementById("type-tab-urikake");
+    const kaikakeTab = document.getElementById("type-tab-kaikake");
+    
+    if (isKaikake) {
+      urikakeTab.className = "tab";
+      kaikakeTab.className = "tab active-kaikake";
+    } else {
+      urikakeTab.className = "tab active";
+      kaikakeTab.className = "tab";
+    }
+
+    // ラベルと選択肢の変更
+    const partnerLabel = document.getElementById("partner-label");
+    const partnerSelect = document.getElementById("u-顧客ID");
+    const priceLabel = document.getElementById("price-label");
+
+    if (isKaikake) {
+      partnerLabel.innerText = "仲卸・担当";
+      priceLabel.innerText = "単価 / 仕入金額（タップでテンキー表示）";
+
+      partnerSelect.innerHTML = `<option value="">仲卸選択</option>`;
+      appState.nakaoroshi.forEach(n => {
+        const id = n.仲卸ID || n.ID || Object.values(n)[0] || "";
+        const name = n.仲卸名 || n.名前 || n.社名 || Object.values(n)[1] || "名称未設定";
+        partnerSelect.innerHTML += `<option value="${id}">${name}</option>`;
+      });
+
+      renderDateTabs([
+        { name: '発注', icon: '👄' },
+        { name: '入荷', icon: '📦' },
+        { name: '請求', icon: '' },
+        { name: '支払', icon: '' },
+        { name: 'キャンセル', icon: '' }
+      ]);
+    } else {
+      partnerLabel.innerText = "顧客・担当";
+      priceLabel.innerText = "単価 / 販売金額（タップでテンキー表示）";
+
+      partnerSelect.innerHTML = `<option value="">顧客選択</option>`;
+      appState.kokyaku.forEach(k => {
+        const id = k.顧客ID || k.ID || Object.values(k)[0] || "";
+        const name = k.顧客名 || k.名前 || k.社名 || Object.values(k)[1] || "名称未設定";
+        partnerSelect.innerHTML += `<option value="${id}">${name}</option>`;
+      });
+
+      renderDateTabs([
+        { name: '依頼', icon: '👂' },
+        { name: '見積', icon: '📃' },
+        { name: '納品', icon: '🚚' },
+        { name: '請求', icon: '' },
+        { name: '入金', icon: '' },
+        { name: 'キャンセル', icon: '' }
+      ]);
+    }
+
+    if (resetInput) {
+      const defaultTab = isKaikake ? '発注' : '依頼';
+      switchDateTab(defaultTab);
+    }
+  }
+
+  function renderDateTabs(tabsInfo) {
+    const container = document.getElementById("date-tabs-container");
+    container.innerHTML = "";
+    tabsInfo.forEach((t, idx) => {
+      const label = t.icon ? `${t.icon} ${t.name}` : t.name;
+      const activeClass = idx === 0 ? "active" : "";
+      container.innerHTML += `<div class="tab ${activeClass}" onclick="switchDateTab('${t.name}')">${label}</div>`;
+    });
+  }
+
+  function populateDropdowns() {
     const tSelect = document.getElementById("u-担当ID");
     const mSelect = document.getElementById("modal-staff-select");
     tSelect.innerHTML = `<option value="">担当選択</option>`;
@@ -615,6 +719,8 @@
       tSelect.value = appState.selectedStaffId;
       mSelect.value = appState.selectedStaffId;
     }
+
+    switchFormType(appState.currentFormType, false);
   }
 
   function onStaffChangedInForm() {
@@ -625,25 +731,36 @@
     }
   }
 
-  async function saveUrikakeData() {
+  async function saveFormData() {
     syncTabValueToState();
 
+    const isKaikake = appState.currentFormType === 'kaikake';
+    const action = isKaikake ? "saveKaikake" : "saveUrikake";
+
     const formData = {
-      "売掛ID": document.getElementById("u-id").value,
+      "売掛ID": isKaikake ? "" : document.getElementById("u-id").value,
+      "買掛ID": isKaikake ? document.getElementById("u-id").value : "",
       "依頼件名": document.getElementById("u-依頼件名").value,
-      "顧客ID": document.getElementById("u-顧客ID").value,
+      "件名": document.getElementById("u-依頼件名").value,
+      "顧客ID": isKaikake ? "" : document.getElementById("u-顧客ID").value,
+      "仲卸ID": isKaikake ? document.getElementById("u-顧客ID").value : "",
       "担当ID": document.getElementById("u-担当ID").value,
       "品名": document.getElementById("u-品名").value,
       "産地": document.getElementById("u-産地").value,
       "単価": document.getElementById("u-単価").value,
       "販売金額": document.getElementById("u-販売金額").value,
+      "仕入金額": document.getElementById("u-販売金額").value,
       "依頼日": currentFormData["依頼日"] || "",
+      "発注日": currentFormData["発注日"] || currentFormData["依頼日"] || "",
       "見積日": currentFormData["見積日"] || "",
       "納品日": currentFormData["納品日"] || "",
+      "入荷日": currentFormData["入荷日"] || currentFormData["納品日"] || "",
       "請求日": currentFormData["請求日"] || "",
       "入金日": currentFormData["入金日"] || "",
+      "支払日": currentFormData["支払日"] || currentFormData["入金日"] || "",
       "キャンセル日": currentFormData["キャンセル日"] || "",
       "依頼内容": currentFormData["依頼内容"] || "",
+      "メモ": currentFormData["メモ"] || currentFormData["依頼内容"] || "",
       "キャンセル理由": currentFormData["キャンセル理由"] || ""
     };
 
@@ -652,7 +769,7 @@
     try {
       const res = await fetch(GAS_URL, {
         method: "POST",
-        body: JSON.stringify({ action: "saveUrikake", data: formData })
+        body: JSON.stringify({ action: action, data: formData })
       });
       const json = await res.json();
       if(json.status === "success") {
@@ -671,26 +788,27 @@
     syncTabValueToState();
     appState.activeTab = tabName;
 
-    document.querySelectorAll('.tabs .tab').forEach(t => {
+    document.querySelectorAll('#date-tabs-container .tab').forEach(t => {
       t.classList.toggle('active', t.innerText.includes(tabName));
     });
 
-    const dateKey = tabName + "日";
+    const dateKey = (tabName === "発注" ? "依頼" : tabName) + "日";
     const memoKey = tabName === "キャンセル" ? "キャンセル理由" : "依頼内容";
 
     const dateInput = document.getElementById("u-date-input");
     const memoInput = document.getElementById("u-memo-input");
 
-    dateInput.value = currentFormData[dateKey] || getTodayString();
-    memoInput.value = currentFormData[memoKey] || "";
+    dateInput.value = currentFormData[dateKey] || currentFormData[tabName + "日"] || getTodayString();
+    memoInput.value = currentFormData[memoKey] || currentFormData["メモ"] || "";
   }
 
   function syncTabValueToState() {
     const tabName = appState.activeTab;
-    const dateKey = tabName + "日";
+    const dateKey = (tabName === "発注" ? "依頼" : tabName) + "日";
     const memoKey = tabName === "キャンセル" ? "キャンセル理由" : "依頼内容";
 
     currentFormData[dateKey] = document.getElementById("u-date-input").value;
+    currentFormData[tabName + "日"] = document.getElementById("u-date-input").value;
     currentFormData[memoKey] = document.getElementById("u-memo-input").value;
   }
 
@@ -740,11 +858,18 @@
     document.getElementById("view-calendar").style.display = viewName === 'calendar' ? 'flex' : 'none';
     document.getElementById("view-urikake-form").style.display = viewName === 'urikake' ? 'block' : 'none';
     document.getElementById("view-master").style.display = viewName === 'master' ? 'block' : 'none';
+
+    if (viewName === 'calendar') {
+      renderCalendar();
+    }
     toggleMenu(false);
   }
 
-  function openNewUrikake() {
-    currentFormData = { "依頼日": getTodayString() };
+  function openNewRecord(type = 'urikake') {
+    appState.currentFormType = type;
+    switchFormType(type, true);
+
+    currentFormData = { "依頼日": getTodayString(), "発注日": getTodayString() };
     document.getElementById("u-id").value = "";
     document.getElementById("u-依頼件名").value = "";
     document.getElementById("u-品名").value = "";
@@ -754,25 +879,32 @@
     document.getElementById("u-担当ID").value = appState.selectedStaffId;
 
     selectCategory('青果');
-    switchDateTab('依頼');
     showView('urikake');
   }
 
-  function openEditUrikake(id) {
-    const item = appState.urikake.find(u => String(u.売掛ID).trim() === String(id).trim());
+  function openEditForm(id, type = 'urikake') {
+    appState.currentFormType = type;
+    switchFormType(type, false);
+
+    const dataset = type === 'kaikake' ? appState.kaikake : appState.urikake;
+    const idKey = type === 'kaikake' ? '買掛ID' : '売掛ID';
+    const item = dataset.find(d => String(d[idKey] || d.ID || Object.values(d)[0]).trim() === String(id).trim());
+
     if(!item) return;
+
     currentFormData = { ...item };
-    document.getElementById("u-id").value = item.売掛ID;
-    document.getElementById("u-依頼件名").value = item.依頼件名 || "";
-    document.getElementById("u-顧客ID").value = item.顧客ID || "";
+    document.getElementById("u-id").value = item[idKey] || item.ID || "";
+    document.getElementById("u-依頼件名").value = item.依頼件名 || item.件名 || "";
+    document.getElementById("u-顧客ID").value = (type === 'kaikake' ? (item.仲卸ID || item.顧客ID) : item.顧客ID) || "";
     document.getElementById("u-担当ID").value = item.担当ID || appState.selectedStaffId;
     document.getElementById("u-品名").value = item.品名 || "";
     document.getElementById("u-産地").value = item.産地 || "";
     document.getElementById("u-単価").value = item.単価 || "";
-    document.getElementById("u-販売金額").value = item.販売金額 || "";
+    document.getElementById("u-販売金額").value = item.販売金額 || item.仕入金額 || "";
 
     selectCategory('青果');
-    switchDateTab('依頼');
+    const defaultTab = type === 'kaikake' ? '発注' : '依頼';
+    switchDateTab(defaultTab);
     showView('urikake');
   }
 
