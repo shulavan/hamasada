@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>濱貞アプリ(仮)</title>
+  <style>
+    :root {
+      --primary: #1e3a8a;
+      --primary-light: #3b82f6;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #1e293b;
+      --border: #e2e8f0;
+      --accent: #f59e0b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: var(--bg); color: var(--text); padding-bottom: 60px; }
+
+    /* ヘッダー */
+    header {
+      background: var(--primary); color: white; padding: 12px 16px; display: flex;
+      justify-content: space-between; align-items: center; sticky; top: 0; z-index: 100;
+    }
+    header h1 { font-size: 1.1rem; font-weight: bold; }
+    .header-btns { display: flex; gap: 8px; align-items: center; }
+    .btn-sm { background: rgba(255,255,255,0.2); color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 0.85rem; cursor: pointer; }
+    .menu-btn { font-size: 1.4rem; background: none; border: none; color: white; cursor: pointer; }
+
+    /* ステータスインジケーター */
+    #status-bar {
+      background: #e2e8f0; text-align: center; font-size: 0.75rem; padding: 4px;
+      color: #475569; position: sticky; top: 48px; z-index: 99; transition: all 0.3s;
+    }
+    #status-bar.saving { background: #fef08a; color: #854d0e; }
+    #status-bar.saved { background: #bbf7d0; color: #166534; }
+
+    /* サイドメニュー（ドロワー） */
+    .drawer {
+      position: fixed; top: 0; right: -280px; width: 280px; height: 100%;
+      background: white; z-index: 200; transition: right 0.3s ease; box-shadow: -2px 0 10px rgba(0,0,0,0.1); padding: 20px;
+    }
+    .drawer.open { right: 0; }
+    .drawer h3 { margin-bottom: 20px; border-bottom: 2px solid var(--primary); padding-bottom: 8px; }
+    .drawer ul { list-style: none; }
+    .drawer li { padding: 12px 0; border-bottom: 1px solid var(--border); cursor: pointer; font-weight: 500; }
+    .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 150; display: none; }
+    .overlay.open { display: block; }
+
+    /* メインコンテンツ */
+    .container { padding: 12px; max-width: 600px; margin: 0 auto; }
+
+    /* カレンダー表示 */
+    .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; background: var(--border); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+    .calendar-2week { grid-template-columns: repeat(7, 1fr); }
+    .cal-header { background: #f1f5f9; text-align: center; font-size: 0.75rem; font-weight: bold; padding: 6px 0; }
+    .cal-day {
+      background: white; min-height: 65px; padding: 2px; position: relative; cursor: pointer;
+      display: flex; flex-direction: column; justify-content: space-between;
+    }
+    .cal-day .day-num { font-size: 0.75rem; font-weight: bold; color: #64748b; }
+    .cal-day.today { background: #eff6ff; }
+    .cal-icons { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; font-size: 0.7rem; text-align: center; }
+    .cal-icons-2week { display: flex; flex-wrap: wrap; gap: 1px; }
+
+    /* 詳細・編集モーダル / 画面 */
+    .view-card { background: white; border-radius: 8px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 16px; }
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; font-size: 0.8rem; font-weight: bold; color: #475569; margin-bottom: 4px; }
+    .form-control { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.95rem; }
+
+    /* タブUI */
+    .tabs { display: flex; border-bottom: 2px solid var(--border); margin-bottom: 12px; overflow-x: auto; }
+    .tab { padding: 8px 12px; font-size: 0.85rem; font-weight: bold; color: #64748b; cursor: pointer; white-space: nowrap; border-bottom: 2px solid transparent; margin-bottom: -2px; }
+    .tab.active { color: var(--primary-light); border-bottom-color: var(--primary-light); }
+
+    /* テンキーボード */
+    .numpad-overlay { position: fixed; bottom: 0; left: 0; right: 0; background: #cbd5e1; padding: 12px; border-top-left-radius: 12px; border-top-right-radius: 12px; z-index: 300; display: none; }
+    .numpad-overlay.open { display: block; }
+    .numpad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; max-width: 400px; margin: 0 auto; }
+    .np-btn { background: white; border: none; padding: 14px; font-size: 1.2rem; font-weight: bold; border-radius: 6px; box-shadow: 0 2px 0 #94a3b8; active: transform 1px; }
+    .np-btn-action { background: var(--primary-light); color: white; }
+
+    /* 一覧・リスト表示 */
+    .list-item { background: white; border: 1px solid var(--border); border-radius: 6px; padding: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+    .list-item .title { font-weight: bold; font-size: 0.95rem; }
+    .list-item .sub { font-size: 0.8rem; color: #64748b; }
+    .action-icons a { text-decoration: none; font-size: 1.2rem; margin-left: 10px; }
+
+    /* チップ選択 */
+    .chip-group { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+    .chip { background: #e2e8f0; padding: 6px 12px; border-radius: 16px; font-size: 0.8rem; cursor: pointer; }
+    .chip.active { background: var(--primary-light); color: white; }
+
+    .fab { position: fixed; bottom: 20px; right: 20px; background: var(--primary-light); color: white; width: 56px; height: 56px; border-radius: 28px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer; border: none; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>濱貞アプリ</h1>
+    <div class="header-btns">
+      <button class="btn-sm" onclick="toggleCalendarView()" id="cal-toggle-btn">2週間表示</button>
+      <button class="menu-btn" onclick="toggleMenu()">☰</button>
+    </div>
+  </header>
+
+  <div id="status-bar">準備完了</div>
+
+  <!-- サイドメニュー -->
+  <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
+  <div class="drawer" id="drawer">
+    <h3>メニュー</h3>
+    <ul>
+      <li onclick="showView('calendar')">📅 カレンダー/TOP</li>
+      <li onclick="openNewUrikake()">➕ 新規売掛登録</li>
+      <li onclick="openNewKaikake()">➕ 新規買掛登録</li>
+      <li onclick="showMasterView('kokyaku')">👥 顧客マスタ編集</li>
+      <li onclick="showMasterView('nakaoroshi')">🏢 仲卸マスタ編集</li>
+      <li onclick="showMasterView('tando')">👨‍💼 担当者マスタ編集</li>
+    </ul>
+  </div>
+
+  <div class="container">
+    <!-- 1. カレンダービュー -->
+    <div id="view-calendar">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <button class="btn-sm" style="background:#64748b" onclick="moveMonth(-1)">◀ 前月</button>
+        <h2 id="cal-month-title" style="font-size: 1rem;">2026年 7月</h2>
+        <button class="btn-sm" style="background:#64748b" onclick="moveMonth(1)">次月 ▶</button>
+      </div>
+      <div id="calendar-container"></div>
+      <div id="day-detail-list" style="margin-top: 16px;"></div>
+    </div>
+
+    <!-- 2. 売掛入力フォーム -->
+    <div id="view-urikake-form" style="display: none;">
+      <div class="view-card">
+        <h3 style="margin-bottom: 12px;" id="form-title">売掛登録・編集</h3>
+        <input type="hidden" id="u-id">
+
+        <div class="form-group">
+          <label>依頼件名</label>
+          <input type="text" class="form-control auto-save" id="u-依頼件名" placeholder="例: 〇〇様 本日納品分">
+        </div>
+
+        <div class="form-group">
+          <label>顧客・担当</label>
+          <div style="display: flex; gap: 8px;">
+            <select class="form-control auto-save" id="u-顧客ID"><option value="">顧客選択</option></select>
+            <select class="form-control auto-save" id="u-担当ID"><option value="">担当選択</option></select>
+          </div>
+        </div>
+
+        <!-- 6段階 日付＆メモ タブ切替 -->
+        <div class="form-group">
+          <label>進捗ステータス・日付・メモ</label>
+          <div class="tabs">
+            <div class="tab active" onclick="switchDateTab('依頼')">👂 依頼</div>
+            <div class="tab" onclick="switchDateTab('見積')">📃 見積</div>
+            <div class="tab" onclick="switchDateTab('納品')">🚚 納品</div>
+            <div class="tab" onclick="switchDateTab('請求')">請求</div>
+            <div class="tab" onclick="switchDateTab('入金')">入金</div>
+            <div class="tab" onclick="switchDateTab('キャンセル')">キャンセル</div>
+          </div>
+
+          <div id="tab-date-container">
+            <!-- 動的に日付とメモを表示 -->
+            <input type="date" class="form-control auto-save" id="u-date-input" style="margin-bottom: 8px;">
+            <textarea class="form-control auto-save" id="u-memo-input" rows="3" placeholder="依頼内容・メモを加算..."></textarea>
+          </div>
+        </div>
+
+        <!-- 品名・産地絞り込み -->
+        <div class="form-group">
+          <label>品名・産地（青果/水産）</label>
+          <div class="chip-group" style="margin-bottom: 8px;">
+            <div class="chip active" id="chip-seika" onclick="selectCategory('青果')">青果</div>
+            <div class="chip" id="chip-suisan" onclick="selectCategory('水産')">水産</div>
+          </div>
+          <select class="form-control" id="u-item-select" onchange="onItemChange()">
+            <option value="">品名を選択...</option>
+          </select>
+          <div class="chip-group" id="sanchi-chips" style="margin-top: 6px;"></div>
+
+          <input type="text" class="form-control auto-save" id="u-品名" placeholder="品名（直接入力可能）" style="margin-top: 8px;">
+          <input type="text" class="form-control auto-save" id="u-産地" placeholder="産地（直接入力可能）" style="margin-top: 4px;">
+        </div>
+
+        <!-- 金額（テンキー連動） -->
+        <div class="form-group">
+          <label>単価 / 販売金額</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="number" class="form-control numpad-trigger auto-save" id="u-単価" placeholder="単価" readonly onclick="openNumpad('u-単価')">
+            <input type="number" class="form-control numpad-trigger auto-save" id="u-販売金額" placeholder="販売金額" readonly onclick="openNumpad('u-販売金額')">
+          </div>
+        </div>
+
+        <button class="btn-sm" style="background:#64748b; width:100%; padding:10px; margin-top:12px;" onclick="showView('calendar')">戻る</button>
+      </div>
+    </div>
+
+    <!-- 3. マスタ編集ビュー -->
+    <div id="view-master" style="display: none;">
+      <div class="view-card">
+        <h3 id="master-title">マスタ編集</h3>
+        <div id="master-list" style="margin-top: 12px;"></div>
+        <button class="btn-sm" style="background:#64748b; width:100%; padding:10px; margin-top:12px;" onclick="showView('calendar')">戻る</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- テンキー画面 -->
+  <div class="numpad-overlay" id="numpad">
+    <div class="numpad-grid">
+      <button class="np-btn" onclick="npInput('7')">7</button>
+      <button class="np-btn" onclick="npInput('8')">8</button>
+      <button class="np-btn" onclick="npInput('9')">9</button>
+      <button class="np-btn" onclick="npInput('4')">4</button>
+      <button class="np-btn" onclick="npInput('5')">5</button>
+      <button class="np-btn" onclick="npInput('6')">6</button>
+      <button class="np-btn" onclick="npInput('1')">1</button>
+      <button class="np-btn" onclick="npInput('2')">2</button>
+      <button class="np-btn" onclick="npInput('3')">3</button>
+      <button class="np-btn" onclick="npInput('0')">0</button>
+      <button class="np-btn" onclick="npInput('00')">00</button>
+      <button class="np-btn" onclick="npClear()">BS</button>
+      <button class="np-btn np-btn-action" style="grid-column: span 3;" onclick="closeNumpad()">確定</button>
+    </div>
+  </div>
+
+  <button class="fab" onclick="openNewUrikake()">＋</button>
+
+<script>
+  const GAS_URL = "https://script.google.com/macros/s/AKfycbyC-omvVcgfeEAJ2q73uFqUEf81-Sy-UwjA_CyXRl8OKQmCHkVjsUiPoKjqr5nNEAlq/exec";
+
+  let appState = {
+    urikake: [], kaikake: [], kokyaku: [], nakaoroshi: [], tando: [], seika: [], suisan: [],
+    currentDate: new Date(),
+    calViewMode: 'month', // 'month' or '2week'
+    activeTab: '依頼',
+    currentNumTarget: null,
+    currentCategory: '青果'
+  };
+
+  // 起動時初期化
+  window.onload = async () => {
+    await fetchAllData();
+    renderCalendar();
+    bindAutoSave();
+  };
+
+  // 全データ一括読み込み
+  async function fetchAllData() {
+    updateStatus("データ読み込み中...", "saving");
+    try {
+      const res = await fetch(GAS_URL, {
+        method: "POST",
+        body: JSON.stringify({ action: "getAllData" })
+      });
+      const json = await res.json();
+      if(json.status === "success") {
+        appState = { ...appState, ...json.data };
+        populateDropdowns();
+        updateStatus("同期完了", "saved");
+      }
+    } catch(e) {
+      updateStatus("通信エラー", "");
+    }
+  }
+
+  // 自動保存の設定（カーソル移動・選択変更で送信）
+  function bindAutoSave() {
+    document.querySelectorAll('.auto-save').forEach(elem => {
+      elem.addEventListener('change', debounceSave);
+      elem.addEventListener('blur', debounceSave);
+    });
+  }
+
+  let saveTimer = null;
+  function debounceSave() {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(autoSaveCurrentForm, 800);
+  }
+
+  async function autoSaveCurrentForm() {
+    updateStatus("スプレッドシート保存中...", "saving");
+    
+    // タブの値を現在のデータオブジェクトに同期
+    syncTabValueToState();
+
+    const formData = {
+      "売掛ID": document.getElementById("u-id").value,
+      "依頼件名": document.getElementById("u-依頼件名").value,
+      "顧客ID": document.getElementById("u-顧客ID").value,
+      "担当ID": document.getElementById("u-担当ID").value,
+      "品名": document.getElementById("u-品名").value,
+      "産地": document.getElementById("u-産地").value,
+      "単価": document.getElementById("u-単価").value,
+      "販売金額": document.getElementById("u-販売金額").value,
+      "依頼日": currentFormData["依頼日"] || "",
+      "見積日": currentFormData["見積日"] || "",
+      "納品日": currentFormData["納品日"] || "",
+      "請求日": currentFormData["請求日"] || "",
+      "入金日": currentFormData["入金日"] || "",
+      "キャンセル日": currentFormData["キャンセル日"] || "",
+      "依頼内容": currentFormData["依頼内容"] || "",
+      "キャンセル理由": currentFormData["キャンセル理由"] || ""
+    };
+
+    try {
+      const res = await fetch(GAS_URL, {
+        method: "POST",
+        body: JSON.stringify({ action: "saveUrikake", data: formData })
+      });
+      const json = await res.json();
+      if(json.status === "success") {
+        if(!formData["売掛ID"]) document.getElementById("u-id").value = json.data["売掛ID"];
+        updateStatus("自動保存完了", "saved");
+        await fetchAllData();
+      }
+    } catch(e) {
+      updateStatus("保存失敗", "");
+    }
+  }
+
+  let currentFormData = {};
+
+  // 日付＆メモ タブ切り替え
+  function switchDateTab(tabName) {
+    syncTabValueToState();
+    appState.activeTab = tabName;
+
+    document.querySelectorAll('.tabs .tab').forEach(t => {
+      t.classList.toggle('active', t.innerText.includes(tabName));
+    });
+
+    const dateKey = tabName + "日";
+    const memoKey = tabName === "キャンセル" ? "キャンセル理由" : "依頼内容";
+
+    const dateInput = document.getElementById("u-date-input");
+    const memoInput = document.getElementById("u-memo-input");
+
+    dateInput.value = currentFormData[dateKey] || getTodayString();
+    memoInput.value = currentFormData[memoKey] || "";
+  }
+
+  function syncTabValueToState() {
+    const tabName = appState.activeTab;
+    const dateKey = tabName + "日";
+    const memoKey = tabName === "キャンセル" ? "キャンセル理由" : "依頼内容";
+
+    currentFormData[dateKey] = document.getElementById("u-date-input").value;
+    currentFormData[memoKey] = document.getElementById("u-memo-input").value;
+  }
+
+  // カレンダー描画
+  function renderCalendar() {
+    const container = document.getElementById("calendar-container");
+    container.innerHTML = "";
+
+    const grid = document.createElement("div");
+    grid.className = `calendar-grid ${appState.calViewMode === '2week' ? 'calendar-2week' : ''}`;
+
+    const headers = ["日","月","火","水","木","金","土"];
+    headers.forEach(h => {
+      grid.innerHTML += `<div class="cal-header">${h}</div>`;
+    });
+
+    const year = appState.currentDate.getFullYear();
+    const month = appState.currentDate.getMonth();
+    document.getElementById("cal-month-title").innerText = `${year}年 ${month + 1}月`;
+
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    // 当月の日数描画
+    for(let i=0; i<firstDay; i++) { grid.innerHTML += `<div class="cal-day"></div>`; }
+
+    for(let d=1; d<=daysInMonth; d++) {
+      const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const icons = getIconsForDate(dateStr);
+
+      grid.innerHTML += `
+        <div class="cal-day" onclick="onDateClick('${dateStr}')">
+          <div class="day-num">${d}</div>
+          <div class="cal-icons">${icons.join('')}</div>
+        </div>
+      `;
+    }
+    container.appendChild(grid);
+  }
+
+  // 日付枠内の 4分割アイコン判定
+  function getIconsForDate(dateStr) {
+    let icons = [];
+    appState.urikake.forEach(u => {
+      if(u.依頼日 === dateStr) icons.push("👂");
+      if(u.見積日 === dateStr) icons.push("📃");
+      if(u.納品日 === dateStr) icons.push("🚚");
+    });
+    appState.kaikake.forEach(k => {
+      if(k.発注日 === dateStr) icons.push("👄");
+      if(k.入荷日 === dateStr) icons.push("📦");
+    });
+    return icons.slice(0, 4); // 最大4個
+  }
+
+  function onDateClick(dateStr) {
+    const list = document.getElementById("day-detail-list");
+    list.innerHTML = `<h4>${dateStr} の案件</h4>`;
+
+    const items = appState.urikake.filter(u => u.依頼日 === dateStr || u.納品日 === dateStr);
+    if(items.length === 0) {
+      list.innerHTML += `<p style="font-size:0.85rem; color:#64748b; padding:8px;">該当するデータはありません</p>`;
+      return;
+    }
+
+    items.forEach(item => {
+      const kokyaku = appState.kokyaku.find(k => String(k.顧客ID) === String(item.顧客ID)) || {};
+      list.innerHTML += `
+        <div class="list-item" onclick="openEditUrikake('${item.売掛ID}')">
+          <div>
+            <div class="title">${item.依頼件名 || '（無題）'}</div>
+            <div class="sub">顧客: ${kokyaku.顧客名 || '未設定'} | 品名: ${item.品名 || '-'}</div>
+          </div>
+          <div>✏️</div>
+        </div>
+      `;
+    });
+  }
+
+  // 品名・産地連動
+  function selectCategory(cat) {
+    appState.currentCategory = cat;
+    document.getElementById("chip-seika").classList.toggle("active", cat === '青果');
+    document.getElementById("chip-suisan").classList.toggle("active", cat === '水産');
+
+    const select = document.getElementById("u-item-select");
+    select.innerHTML = `<option value="">品名を選択...</option>`;
+    const items = cat === '青果' ? appState.seika : appState.suisan;
+
+    const uniqueItems = [...new Set(items.map(i => i.品名))];
+    uniqueItems.forEach(item => {
+      select.innerHTML += `<option value="${item}">${item}</option>`;
+    });
+  }
+
+  function onItemChange() {
+    const val = document.getElementById("u-item-select").value;
+    document.getElementById("u-品名").value = val;
+
+    const items = appState.currentCategory === '青果' ? appState.seika : appState.suisan;
+    const sanchis = items.filter(i => i.品名 === val).map(i => i.産地);
+
+    const sanchiContainer = document.getElementById("sanchi-chips");
+    sanchiContainer.innerHTML = "";
+    [...new Set(sanchis)].forEach(s => {
+      if(s) {
+        sanchiContainer.innerHTML += `<div class="chip" onclick="document.getElementById('u-産地').value='${s}'; debounceSave();">${s}</div>`;
+      }
+    });
+    debounceSave();
+  }
+
+  // テンキー操作
+  function openNumpad(targetId) {
+    appState.currentNumTarget = document.getElementById(targetId);
+    document.getElementById("numpad").classList.add("open");
+  }
+  function closeNumpad() {
+    document.getElementById("numpad").classList.remove("open");
+    debounceSave();
+  }
+  function npInput(val) {
+    if(!appState.currentNumTarget) return;
+    appState.currentNumTarget.value += val;
+  }
+  function npClear() {
+    if(!appState.currentNumTarget) return;
+    appState.currentNumTarget.value = appState.currentNumTarget.value.slice(0, -1);
+  }
+
+  // 画面切替コントロール
+  function showView(viewName) {
+    document.getElementById("view-calendar").style.display = viewName === 'calendar' ? 'block' : 'none';
+    document.getElementById("view-urikake-form").style.display = viewName === 'urikake' ? 'block' : 'none';
+    document.getElementById("view-master").style.display = viewName === 'master' ? 'block' : 'none';
+    toggleMenu(false);
+  }
+
+  function openNewUrikake() {
+    currentFormData = { "依頼日": getTodayString() };
+    document.getElementById("u-id").value = "";
+    document.getElementById("u-依頼件名").value = "";
+    document.getElementById("u-品名").value = "";
+    document.getElementById("u-産地").value = "";
+    document.getElementById("u-単価").value = "";
+    document.getElementById("u-販売金額").value = "";
+    selectCategory('青果');
+    switchDateTab('依頼');
+    showView('urikake');
+  }
+
+  function openEditUrikake(id) {
+    const item = appState.urikake.find(u => String(u.売掛ID) === String(id));
+    if(!item) return;
+    currentFormData = { ...item };
+    document.getElementById("u-id").value = item.売掛ID;
+    document.getElementById("u-依頼件名").value = item.依頼件名 || "";
+    document.getElementById("u-顧客ID").value = item.顧客ID || "";
+    document.getElementById("u-担当ID").value = item.担当ID || "";
+    document.getElementById("u-品名").value = item.品名 || "";
+    document.getElementById("u-産地").value = item.産地 || "";
+    document.getElementById("u-単価").value = item.単価 || "";
+    document.getElementById("u-販売金額").value = item.販売金額 || "";
+    selectCategory('青果');
+    switchDateTab('依頼');
+    showView('urikake');
+  }
+
+  // マスタ編集表示
+  function showMasterView(type) {
+    showView('master');
+    const list = document.getElementById("master-list");
+    list.innerHTML = "";
+
+    const dataMap = { kokyaku: appState.kokyaku, nakaoroshi: appState.nakaoroshi, tando: appState.tando };
+    const titleMap = { kokyaku: "顧客マスタ", nakaoroshi: "仲卸マスタ", tando: "担当者マスタ" };
+    const nameKeyMap = { kokyaku: "顧客名", nakaoroshi: "仲卸名", tando: "担当名" };
+    const telKeyMap = { kokyaku: "顧客TEL", nakaoroshi: "仲卸TEL", tando: "担当TEL" };
+    const mailKeyMap = { kokyaku: "顧客メール", nakaoroshi: "仲卸メール", tando: "担当メール" };
+
+    document.getElementById("master-title").innerText = titleMap[type];
+
+    dataMap[type].forEach(m => {
+      const name = m[nameKeyMap[type]] || "（名前なし）";
+      const tel = m[telKeyMap[type]] || "";
+      const mail = m[mailKeyMap[type]] || "";
+
+      list.innerHTML += `
+        <div class="list-item">
+          <div>
+            <div class="title">${name}</div>
+            <div class="sub">TEL: ${tel}</div>
+          </div>
+          <div class="action-icons">
+            ${tel ? `<a href="tel:${tel}">📞</a>` : ''}
+            ${mail ? `<a href="mailto:${mail}">✉</a>` : ''}
+          </div>
+        </div>
+      `;
+    });
+  }
+
+  // 共通ユーティリティ
+  function populateDropdowns() {
+    const kSelect = document.getElementById("u-顧客ID");
+    kSelect.innerHTML = `<option value="">顧客選択</option>`;
+    appState.kokyaku.forEach(k => { kSelect.innerHTML += `<option value="${k.顧客ID}">${k.顧客名}</option>`; });
+
+    const tSelect = document.getElementById("u-担当ID");
+    tSelect.innerHTML = `<option value="">担当選択</option>`;
+    appState.tando.forEach(t => { tSelect.innerHTML += `<option value="${t.担当ID}">${t.担当名}</option>`; });
+  }
+
+  function toggleMenu(force) {
+    const drawer = document.getElementById("drawer");
+    const overlay = document.getElementById("overlay");
+    const open = force !== undefined ? force : !drawer.classList.contains("open");
+    drawer.classList.toggle("open", open);
+    overlay.classList.toggle("open", open);
+  }
+
+  function toggleCalendarView() {
+    appState.calViewMode = appState.calViewMode === 'month' ? '2week' : 'month';
+    document.getElementById("cal-toggle-btn").innerText = appState.calViewMode === 'month' ? '2週間表示' : '月表示';
+    renderCalendar();
+  }
+
+  function moveMonth(delta) {
+    appState.currentDate.setMonth(appState.currentDate.getMonth() + delta);
+    renderCalendar();
+  }
+
+  function updateStatus(msg, className) {
+    const bar = document.getElementById("status-bar");
+    bar.innerText = msg;
+    bar.className = className;
+  }
+
+  function getTodayString() {
+    return new Date().toISOString().split('T')[0];
+  }
+</script>
+</body>
+</html>
