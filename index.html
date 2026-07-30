@@ -14,11 +14,11 @@
       --border: #cbd5e1;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background: var(--bg); color: var(--text); padding-bottom: 240px; }
+    body { background: var(--bg); color: var(--text); }
 
     header {
-      background: var(--primary); color: white; padding: 12px 16px; display: flex;
-      justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100;
+      background: var(--primary); color: white; padding: 10px 16px; display: flex;
+      justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; height: 48px;
     }
     header h1 { font-size: 1.1rem; font-weight: bold; }
     .header-btns { display: flex; gap: 8px; align-items: center; }
@@ -26,8 +26,8 @@
     .menu-btn { font-size: 1.4rem; background: none; border: none; color: white; cursor: pointer; }
 
     #status-bar {
-      background: #e2e8f0; text-align: center; font-size: 0.8rem; padding: 6px;
-      color: #475569; position: sticky; top: 48px; z-index: 99; font-weight: bold;
+      background: #e2e8f0; text-align: center; font-size: 0.8rem; padding: 4px;
+      color: #475569; font-weight: bold; height: 26px;
     }
     #status-bar.saving { background: #fef08a; color: #854d0e; }
     #status-bar.saved { background: #bbf7d0; color: #166534; }
@@ -43,17 +43,48 @@
     .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 150; display: none; }
     .overlay.open { display: block; }
 
-    .container { padding: 12px; max-width: 600px; margin: 0 auto; }
+    .container { padding: 8px; max-width: 800px; margin: 0 auto; }
 
-    .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; background: var(--border); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+    /* 月表示用標準グリッド */
+    .calendar-grid-month {
+      display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px;
+      background: var(--border); border: 1px solid var(--border); border-radius: 6px; overflow: hidden;
+    }
     .cal-header { background: #e2e8f0; text-align: center; font-size: 0.75rem; font-weight: bold; padding: 6px 0; }
     .cal-day {
-      background: white; min-height: 60px; padding: 3px; position: relative; cursor: pointer;
+      background: white; min-height: 55px; padding: 3px; position: relative; cursor: pointer;
       display: flex; flex-direction: column; justify-content: space-between;
     }
     .cal-day .day-num { font-size: 0.75rem; font-weight: bold; color: #475569; }
     .cal-day.today { background: #eff6ff; border: 2px solid var(--primary-light); }
-    .cal-icons { display: flex; flex-wrap: wrap; gap: 1px; font-size: 0.7rem; }
+
+    /* 2週間表示用（手書き図面再現：画面最大化） */
+    .calendar-grid-2week {
+      display: grid;
+      grid-template-columns: 36px 1fr 1fr;
+      grid-template-rows: repeat(7, 1fr);
+      gap: 2px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      /* 画面の高さいっぱいに広げる設定 */
+      height: calc(100vh - 135px);
+      min-height: 480px;
+      overflow: hidden;
+    }
+    .cal-2week-label {
+      background: #f1f5f9; display: flex; align-items: center; justify-content: center;
+      font-weight: bold; font-size: 0.95rem; color: #334155; border-right: 1px solid var(--border);
+    }
+    .cal-2week-label.sun { color: #dc2626; }
+    .cal-2week-label.sat { color: #2563eb; }
+    .cal-2week-day {
+      background: white; padding: 6px; display: flex; flex-direction: column;
+      justify-content: flex-start; cursor: pointer; position: relative;
+    }
+    .cal-2week-day.today { background: #eff6ff; border: 2px solid var(--primary-light); }
+    .cal-2week-day .day-num { font-size: 0.85rem; font-weight: bold; color: #475569; margin-bottom: 4px; }
+    .cal-2week-day .cal-icons { display: flex; flex-wrap: wrap; gap: 4px; font-size: 1.15rem; }
 
     .view-card { background: white; border-radius: 8px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 16px; }
     .form-group { margin-bottom: 14px; }
@@ -75,7 +106,6 @@
     .numpad-overlay.open { display: block; }
     .numpad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; max-width: 400px; margin: 0 auto; }
     .np-btn { background: white; border: none; padding: 14px; font-size: 1.3rem; font-weight: bold; border-radius: 8px; box-shadow: 0 2px 0 #94a3b8; cursor: pointer; }
-    .np-btn:active { background: #f1f5f9; }
     .np-btn-action { background: var(--primary-light); color: white; box-shadow: 0 2px 0 #1d4ed8; }
 
     .list-item { background: white; border: 1px solid var(--border); border-radius: 6px; padding: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
@@ -88,14 +118,11 @@
 
     .btn-save {
       background: #16a34a; color: white; border: none; width: 100%; padding: 14px;
-      font-size: 1.1rem; font-weight: bold; border-radius: 8px; margin-top: 16px;
-      box-shadow: 0 3px 6px rgba(0,0,0,0.1); cursor: pointer;
+      font-size: 1.1rem; font-weight: bold; border-radius: 8px; margin-top: 16px; cursor: pointer;
     }
-    .btn-save:active { background: #15803d; }
 
     .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 400; display: flex; align-items: center; justify-content: center; padding: 20px; }
-    .modal-card { background: white; border-radius: 12px; width: 100%; max-width: 360px; padding: 20px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
-    .modal-card h3 { margin-bottom: 12px; color: var(--primary); }
+    .modal-card { background: white; border-radius: 12px; width: 100%; max-width: 360px; padding: 20px; text-align: center; }
 
     .fab { position: fixed; bottom: 20px; right: 20px; background: var(--primary-light); color: white; width: 56px; height: 56px; border-radius: 28px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer; border: none; z-index: 90; }
   </style>
@@ -115,7 +142,7 @@
   <!-- 初回 担当者選択モーダル -->
   <div class="modal-overlay" id="staff-modal" style="display: none;">
     <div class="modal-card">
-      <h3>担当者を選択してください</h3>
+      <h3 style="color:var(--primary); margin-bottom:12px;">担当者を選択してください</h3>
       <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 16px;">利用を開始するスタッフを選択します</p>
       <select class="form-control" id="modal-staff-select" style="margin-bottom: 16px;">
         <option value="">担当者を選択...</option>
@@ -139,13 +166,13 @@
 
   <div class="container">
     <div id="view-calendar">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;" id="cal-header-nav">
-        <button class="btn-sm" style="background:#64748b" onclick="moveMonth(-1)">◀ 前月</button>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;" id="cal-header-nav">
+        <button class="btn-sm" style="background:#64748b" onclick="moveCalendar(-1)">◀ 前</button>
         <h2 id="cal-month-title" style="font-size: 1rem;"></h2>
-        <button class="btn-sm" style="background:#64748b" onclick="moveMonth(1)">次月 ▶</button>
+        <button class="btn-sm" style="background:#64748b" onclick="moveCalendar(1)">次 ▶</button>
       </div>
       <div id="calendar-container"></div>
-      <div id="day-detail-list" style="margin-top: 16px;"></div>
+      <div id="day-detail-list" style="margin-top: 12px;"></div>
     </div>
 
     <div id="view-urikake-form" style="display: none;">
@@ -255,7 +282,6 @@
 
   let currentFormData = {};
 
-  // 起動時：データ同期完了後にモーダル判定を実施
   window.onload = async () => {
     await fetchAllData();
     checkStaffSelection();
@@ -298,6 +324,197 @@
     localStorage.removeItem("hamasada_staff_id");
     appState.selectedStaffId = "";
     location.reload();
+  }
+
+  function renderCalendar() {
+    if (appState.calViewMode === 'month') {
+      renderMonthCalendar();
+    } else {
+      render2WeekCalendar();
+    }
+  }
+
+  // 月表示（標準7列）
+  function renderMonthCalendar() {
+    const container = document.getElementById("calendar-container");
+    container.innerHTML = "";
+
+    const year = appState.currentDate.getFullYear();
+    const month = appState.currentDate.getMonth();
+    document.getElementById("cal-month-title").innerText = `${year}年 ${month + 1}月`;
+
+    const grid = document.createElement("div");
+    grid.className = "calendar-grid-month";
+
+    const headers = ["日","月","火","水","木","金","土"];
+    headers.forEach(h => { grid.innerHTML += `<div class="cal-header">${h}</div>`; });
+
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    for(let i=0; i<firstDay; i++) { grid.innerHTML += `<div class="cal-day"></div>`; }
+
+    for(let d=1; d<=daysInMonth; d++) {
+      const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const isToday = dateStr === getTodayString();
+      const icons = getIconsForDate(dateStr);
+
+      grid.innerHTML += `
+        <div class="cal-day ${isToday ? 'today' : ''}" onclick="onDateClick('${dateStr}')">
+          <div class="day-num">${d}</div>
+          <div class="cal-icons">${icons.join('')}</div>
+        </div>
+      `;
+    }
+    container.appendChild(grid);
+  }
+
+  // 2週間表示（手書き画像レイアウト：日〜土の縦行 ✕ 2列）
+  function render2WeekCalendar() {
+    const container = document.getElementById("calendar-container");
+    container.innerHTML = "";
+
+    const grid = document.createElement("div");
+    grid.className = "calendar-grid-2week";
+
+    const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
+    const today = appState.currentDate;
+
+    // 現在選択されている週の「日曜日」を開始点に設定
+    const startSun = new Date(today);
+    startSun.setDate(today.getDate() - today.getDay());
+
+    const endDay = new Date(startSun);
+    endDay.setDate(startSun.getDate() + 13);
+
+    document.getElementById("cal-month-title").innerText = 
+      `${startSun.getMonth() + 1}/${startSun.getDate()} 〜 ${endDay.getMonth() + 1}/${endDay.getDate()}`;
+
+    for (let i = 0; i < 7; i++) {
+      // 1列目: 曜日ラベル
+      const label = document.createElement("div");
+      let colorClass = "";
+      if (i === 0) colorClass = "sun";
+      if (i === 6) colorClass = "sat";
+      label.className = `cal-2week-label ${colorClass}`;
+      label.innerText = weekdays[i];
+      grid.appendChild(label);
+
+      // 2列目: 1週目 (日〜土)
+      const d1 = new Date(startSun);
+      d1.setDate(startSun.getDate() + i);
+      grid.appendChild(create2WeekCell(d1));
+
+      // 3列目: 2週目 (日〜土)
+      const d2 = new Date(startSun);
+      d2.setDate(startSun.getDate() + i + 7);
+      grid.appendChild(create2WeekCell(d2));
+    }
+
+    container.appendChild(grid);
+  }
+
+  function create2WeekCell(d) {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const dateStr = `${year}-${month}-${day}`;
+
+    const displayLabel = `${d.getMonth() + 1}/${d.getDate()}`;
+    const isToday = dateStr === getTodayString();
+    const icons = getIconsForDate(dateStr);
+
+    const cell = document.createElement("div");
+    cell.className = `cal-2week-day ${isToday ? 'today' : ''}`;
+    cell.onclick = () => onDateClick(dateStr);
+    cell.innerHTML = `
+      <div class="day-num">${displayLabel}</div>
+      <div class="cal-icons">${icons.join('')}</div>
+    `;
+    return cell;
+  }
+
+  function getIconsForDate(dateStr) {
+    let icons = [];
+    appState.urikake.forEach(u => {
+      if(u.依頼日 === dateStr) icons.push("👂");
+      if(u.見積日 === dateStr) icons.push("📃");
+      if(u.納品日 === dateStr) icons.push("🚚");
+    });
+    appState.kaikake.forEach(k => {
+      if(k.発注日 === dateStr) icons.push("👄");
+      if(k.入荷日 === dateStr) icons.push("📦");
+    });
+    return icons;
+  }
+
+  function moveCalendar(delta) {
+    if (appState.calViewMode === 'month') {
+      appState.currentDate.setMonth(appState.currentDate.getMonth() + delta);
+    } else {
+      appState.currentDate.setDate(appState.currentDate.getDate() + (delta * 14));
+    }
+    renderCalendar();
+  }
+
+  function toggleCalendarView() {
+    appState.calViewMode = appState.calViewMode === 'month' ? '2week' : 'month';
+    document.getElementById("cal-toggle-btn").innerText = appState.calViewMode === 'month' ? '2週間表示' : '月表示';
+    renderCalendar();
+  }
+
+  function onDateClick(dateStr) {
+    const list = document.getElementById("day-detail-list");
+    list.innerHTML = `<h4 style="margin-bottom:8px;">📅 ${dateStr} の案件</h4>`;
+
+    const items = appState.urikake.filter(u => u.依頼日 === dateStr || u.納品日 === dateStr || u.見積日 === dateStr);
+    if(items.length === 0) {
+      list.innerHTML += `<p style="font-size:0.85rem; color:#64748b; padding:8px; background:white; border-radius:6px;">該当するデータはありません</p>`;
+      return;
+    }
+
+    items.forEach(item => {
+      const kokyaku = appState.kokyaku.find(k => String(k.顧客ID) === String(item.顧客ID)) || {};
+      list.innerHTML += `
+        <div class="list-item" onclick="openEditUrikake('${item.売掛ID}')">
+          <div>
+            <div class="title">${item.依頼件名 || '（無題）'}</div>
+            <div class="sub">顧客: ${kokyaku.顧客名 || '未設定'} | 品名: ${item.品名 || '-'}</div>
+          </div>
+          <div style="font-size:1.2rem;">✏️</div>
+        </div>
+      `;
+    });
+  }
+
+  function populateDropdowns() {
+    const kSelect = document.getElementById("u-顧客ID");
+    kSelect.innerHTML = `<option value="">顧客選択</option>`;
+    appState.kokyaku.forEach(k => {
+      const id = k.顧客ID || k.ID || Object.values(k)[0] || "";
+      const name = k.顧客名 || k.名前 || k.社名 || Object.values(k)[1] || "名称未設定";
+      kSelect.innerHTML += `<option value="${id}">${name}</option>`;
+    });
+
+    const tSelect = document.getElementById("u-担当ID");
+    const mSelect = document.getElementById("modal-staff-select");
+    tSelect.innerHTML = `<option value="">担当選択</option>`;
+    mSelect.innerHTML = `<option value="">担当者を選択...</option>`;
+
+    appState.tando.forEach(t => {
+      const id = t.担当ID || t.ID || t.担当コード || Object.values(t)[0] || "";
+      const name = t.担当名 || t.担当者名 || t.名前 || t.氏名 || Object.values(t)[1] || "名称未設定";
+
+      if (id || name) {
+        tSelect.innerHTML += `<option value="${id}">${name}</option>`;
+        mSelect.innerHTML += `<option value="${id}">${name}</option>`;
+      }
+    });
+
+    if (appState.selectedStaffId) {
+      tSelect.value = appState.selectedStaffId;
+      mSelect.value = appState.selectedStaffId;
+    }
   }
 
   function onStaffChangedInForm() {
@@ -377,98 +594,6 @@
     currentFormData[memoKey] = document.getElementById("u-memo-input").value;
   }
 
-  function renderCalendar() {
-    const container = document.getElementById("calendar-container");
-    container.innerHTML = "";
-
-    const grid = document.createElement("div");
-    grid.className = "calendar-grid";
-
-    const headers = ["日","月","火","水","木","金","土"];
-    headers.forEach(h => { grid.innerHTML += `<div class="cal-header">${h}</div>`; });
-
-    if (appState.calViewMode === 'month') {
-      document.getElementById("cal-header-nav").style.display = "flex";
-      const year = appState.currentDate.getFullYear();
-      const month = appState.currentDate.getMonth();
-      document.getElementById("cal-month-title").innerText = `${year}年 ${month + 1}月`;
-
-      const firstDay = new Date(year, month, 1).getDay();
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-      for(let i=0; i<firstDay; i++) { grid.innerHTML += `<div class="cal-day"></div>`; }
-
-      for(let d=1; d<=daysInMonth; d++) {
-        const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-        appendDayCell(grid, d, dateStr);
-      }
-    } else {
-      document.getElementById("cal-header-nav").style.display = "none";
-      const today = new Date();
-      const startSun = new Date(today);
-      startSun.setDate(today.getDate() - today.getDay());
-
-      for(let i=0; i<14; i++) {
-        const d = new Date(startSun);
-        d.setDate(startSun.getDate() + i);
-        const dateStr = d.toISOString().split('T')[0];
-        const label = `${d.getMonth()+1}/${d.getDate()}`;
-        appendDayCell(grid, label, dateStr);
-      }
-    }
-    container.appendChild(grid);
-  }
-
-  function appendDayCell(grid, displayLabel, dateStr) {
-    const isToday = dateStr === getTodayString();
-    const icons = getIconsForDate(dateStr);
-
-    grid.innerHTML += `
-      <div class="cal-day ${isToday ? 'today' : ''}" onclick="onDateClick('${dateStr}')">
-        <div class="day-num">${displayLabel}</div>
-        <div class="cal-icons">${icons.join('')}</div>
-      </div>
-    `;
-  }
-
-  function getIconsForDate(dateStr) {
-    let icons = [];
-    appState.urikake.forEach(u => {
-      if(u.依頼日 === dateStr) icons.push("👂");
-      if(u.見積日 === dateStr) icons.push("📃");
-      if(u.納品日 === dateStr) icons.push("🚚");
-    });
-    appState.kaikake.forEach(k => {
-      if(k.発注日 === dateStr) icons.push("👄");
-      if(k.入荷日 === dateStr) icons.push("📦");
-    });
-    return icons.slice(0, 4);
-  }
-
-  function onDateClick(dateStr) {
-    const list = document.getElementById("day-detail-list");
-    list.innerHTML = `<h4 style="margin-bottom:8px;">📅 ${dateStr} の案件</h4>`;
-
-    const items = appState.urikake.filter(u => u.依頼日 === dateStr || u.納品日 === dateStr);
-    if(items.length === 0) {
-      list.innerHTML += `<p style="font-size:0.85rem; color:#64748b; padding:8px; background:white; border-radius:6px;">該当するデータはありません</p>`;
-      return;
-    }
-
-    items.forEach(item => {
-      const kokyaku = appState.kokyaku.find(k => String(k.顧客ID) === String(item.顧客ID)) || {};
-      list.innerHTML += `
-        <div class="list-item" onclick="openEditUrikake('${item.売掛ID}')">
-          <div>
-            <div class="title">${item.依頼件名 || '（無題）'}</div>
-            <div class="sub">顧客: ${kokyaku.顧客名 || '未設定'} | 品名: ${item.品名 || '-'}</div>
-          </div>
-          <div style="font-size:1.2rem;">✏️</div>
-        </div>
-      `;
-    });
-  }
-
   function selectCategory(cat) {
     appState.currentCategory = cat;
     document.getElementById("chip-seika").classList.toggle("active", cat === '青果');
@@ -503,22 +628,13 @@
   function openNumpad(targetId) {
     appState.currentNumTarget = document.getElementById(targetId);
     document.getElementById("numpad").classList.add("open");
-
     setTimeout(() => {
       document.getElementById("price-section").scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 100);
   }
-  function closeNumpad() {
-    document.getElementById("numpad").classList.remove("open");
-  }
-  function npInput(val) {
-    if(!appState.currentNumTarget) return;
-    appState.currentNumTarget.value += val;
-  }
-  function npClear() {
-    if(!appState.currentNumTarget) return;
-    appState.currentNumTarget.value = appState.currentNumTarget.value.slice(0, -1);
-  }
+  function closeNumpad() { document.getElementById("numpad").classList.remove("open"); }
+  function npInput(val) { if(appState.currentNumTarget) appState.currentNumTarget.value += val; }
+  function npClear() { if(appState.currentNumTarget) appState.currentNumTarget.value = appState.currentNumTarget.value.slice(0, -1); }
 
   function showView(viewName) {
     document.getElementById("view-calendar").style.display = viewName === 'calendar' ? 'block' : 'none';
@@ -590,45 +706,12 @@
     });
   }
 
-  function populateDropdowns() {
-    const kSelect = document.getElementById("u-顧客ID");
-    kSelect.innerHTML = `<option value="">顧客選択</option>`;
-    appState.kokyaku.forEach(k => { kSelect.innerHTML += `<option value="${k.顧客ID}">${k.顧客名}</option>`; });
-
-    const tSelect = document.getElementById("u-担当ID");
-    const mSelect = document.getElementById("modal-staff-select");
-    tSelect.innerHTML = `<option value="">担当選択</option>`;
-    mSelect.innerHTML = `<option value="">担当者を選択...</option>`;
-
-    appState.tando.forEach(t => {
-      const name = t.担当名 || t.名前 || t.担当者名 || "名称未設定";
-      tSelect.innerHTML += `<option value="${t.担当ID}">${name}</option>`;
-      mSelect.innerHTML += `<option value="${t.担当ID}">${name}</option>`;
-    });
-
-    if (appState.selectedStaffId) {
-      tSelect.value = appState.selectedStaffId;
-      mSelect.value = appState.selectedStaffId;
-    }
-  }
-
   function toggleMenu(force) {
     const drawer = document.getElementById("drawer");
     const overlay = document.getElementById("overlay");
     const open = force !== undefined ? force : !drawer.classList.contains("open");
     drawer.classList.toggle("open", open);
     overlay.classList.toggle("open", open);
-  }
-
-  function toggleCalendarView() {
-    appState.calViewMode = appState.calViewMode === 'month' ? '2week' : 'month';
-    document.getElementById("cal-toggle-btn").innerText = appState.calViewMode === 'month' ? '2週間表示' : '月表示';
-    renderCalendar();
-  }
-
-  function moveMonth(delta) {
-    appState.currentDate.setMonth(appState.currentDate.getMonth() + delta);
-    renderCalendar();
   }
 
   function updateStatus(msg, className) {
