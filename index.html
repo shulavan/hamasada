@@ -7,35 +7,35 @@
   <style>
     :root {
       --primary: #1e3a8a;
-      --primary-light: #3b82f6;
+      --primary-light: #2563eb;
       --bg: #f8fafc;
       --card: #ffffff;
       --text: #1e293b;
-      --border: #e2e8f0;
+      --border: #cbd5e1;
       --accent: #f59e0b;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background: var(--bg); color: var(--text); padding-bottom: 60px; }
+    body { background: var(--bg); color: var(--text); padding-bottom: 240px; }
 
     /* ヘッダー */
     header {
       background: var(--primary); color: white; padding: 12px 16px; display: flex;
-      justify-content: space-between; align-items: center; sticky; top: 0; z-index: 100;
+      justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100;
     }
     header h1 { font-size: 1.1rem; font-weight: bold; }
     .header-btns { display: flex; gap: 8px; align-items: center; }
     .btn-sm { background: rgba(255,255,255,0.2); color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 0.85rem; cursor: pointer; }
     .menu-btn { font-size: 1.4rem; background: none; border: none; color: white; cursor: pointer; }
 
-    /* ステータスインジケーター */
+    /* ステータスバー */
     #status-bar {
-      background: #e2e8f0; text-align: center; font-size: 0.75rem; padding: 4px;
-      color: #475569; position: sticky; top: 48px; z-index: 99; transition: all 0.3s;
+      background: #e2e8f0; text-align: center; font-size: 0.8rem; padding: 6px;
+      color: #475569; position: sticky; top: 48px; z-index: 99; font-weight: bold;
     }
     #status-bar.saving { background: #fef08a; color: #854d0e; }
     #status-bar.saved { background: #bbf7d0; color: #166534; }
 
-    /* サイドメニュー（ドロワー） */
+    /* サイドメニュー */
     .drawer {
       position: fixed; top: 0; right: -280px; width: 280px; height: 100%;
       background: white; z-index: 200; transition: right 0.3s ease; box-shadow: -2px 0 10px rgba(0,0,0,0.1); padding: 20px;
@@ -47,52 +47,70 @@
     .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 150; display: none; }
     .overlay.open { display: block; }
 
-    /* メインコンテンツ */
+    /* メインコンテナ */
     .container { padding: 12px; max-width: 600px; margin: 0 auto; }
 
-    /* カレンダー表示 */
+    /* カレンダー */
     .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; background: var(--border); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
-    .calendar-2week { grid-template-columns: repeat(7, 1fr); }
-    .cal-header { background: #f1f5f9; text-align: center; font-size: 0.75rem; font-weight: bold; padding: 6px 0; }
+    .cal-header { background: #e2e8f0; text-align: center; font-size: 0.75rem; font-weight: bold; padding: 6px 0; }
     .cal-day {
-      background: white; min-height: 65px; padding: 2px; position: relative; cursor: pointer;
+      background: white; min-height: 60px; padding: 3px; position: relative; cursor: pointer;
       display: flex; flex-direction: column; justify-content: space-between;
     }
-    .cal-day .day-num { font-size: 0.75rem; font-weight: bold; color: #64748b; }
-    .cal-day.today { background: #eff6ff; }
-    .cal-icons { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; font-size: 0.7rem; text-align: center; }
-    .cal-icons-2week { display: flex; flex-wrap: wrap; gap: 1px; }
+    .cal-day .day-num { font-size: 0.75rem; font-weight: bold; color: #475569; }
+    .cal-day.today { background: #eff6ff; border: 2px solid var(--primary-light); }
+    .cal-icons { display: flex; flex-wrap: wrap; gap: 1px; font-size: 0.7rem; }
 
-    /* 詳細・編集モーダル / 画面 */
+    /* フォーム */
     .view-card { background: white; border-radius: 8px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 16px; }
-    .form-group { margin-bottom: 12px; }
-    .form-group label { display: block; font-size: 0.8rem; font-weight: bold; color: #475569; margin-bottom: 4px; }
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 0.85rem; font-weight: bold; color: #334155; margin-bottom: 4px; }
     .form-control { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.95rem; }
 
-    /* タブUI */
-    .tabs { display: flex; border-bottom: 2px solid var(--border); margin-bottom: 12px; overflow-x: auto; }
-    .tab { padding: 8px 12px; font-size: 0.85rem; font-weight: bold; color: #64748b; cursor: pointer; white-space: nowrap; border-bottom: 2px solid transparent; margin-bottom: -2px; }
-    .tab.active { color: var(--primary-light); border-bottom-color: var(--primary-light); }
+    /* 改良版 日付タブ (背景色変化) */
+    .tabs { display: flex; gap: 4px; border-bottom: 2px solid var(--border); margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; }
+    .tab {
+      padding: 8px 12px; font-size: 0.85rem; font-weight: bold; color: #475569; cursor: pointer;
+      white-space: nowrap; border-radius: 6px 6px 0 0; background: #e2e8f0; border: 1px solid var(--border); border-bottom: none;
+    }
+    .tab.active { color: white; background: var(--primary-light); border-color: var(--primary-light); }
 
     /* テンキーボード */
-    .numpad-overlay { position: fixed; bottom: 0; left: 0; right: 0; background: #cbd5e1; padding: 12px; border-top-left-radius: 12px; border-top-right-radius: 12px; z-index: 300; display: none; }
+    .numpad-overlay {
+      position: fixed; bottom: 0; left: 0; right: 0; background: #cbd5e1; padding: 12px;
+      border-top-left-radius: 16px; border-top-right-radius: 16px; z-index: 300; display: none;
+      box-shadow: 0 -4px 12px rgba(0,0,0,0.15);
+    }
     .numpad-overlay.open { display: block; }
     .numpad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; max-width: 400px; margin: 0 auto; }
-    .np-btn { background: white; border: none; padding: 14px; font-size: 1.2rem; font-weight: bold; border-radius: 6px; box-shadow: 0 2px 0 #94a3b8; active: transform 1px; }
-    .np-btn-action { background: var(--primary-light); color: white; }
+    .np-btn { background: white; border: none; padding: 14px; font-size: 1.3rem; font-weight: bold; border-radius: 8px; box-shadow: 0 2px 0 #94a3b8; cursor: pointer; }
+    .np-btn:active { background: #f1f5f9; }
+    .np-btn-action { background: var(--primary-light); color: white; box-shadow: 0 2px 0 #1d4ed8; }
 
-    /* 一覧・リスト表示 */
-    .list-item { background: white; border: 1px solid var(--border); border-radius: 6px; padding: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+    /* リスト表示 */
+    .list-item { background: white; border: 1px solid var(--border); border-radius: 6px; padding: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
     .list-item .title { font-weight: bold; font-size: 0.95rem; }
-    .list-item .sub { font-size: 0.8rem; color: #64748b; }
-    .action-icons a { text-decoration: none; font-size: 1.2rem; margin-left: 10px; }
+    .list-item .sub { font-size: 0.8rem; color: #64748b; margin-top: 2px; }
 
     /* チップ選択 */
     .chip-group { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
-    .chip { background: #e2e8f0; padding: 6px 12px; border-radius: 16px; font-size: 0.8rem; cursor: pointer; }
+    .chip { background: #e2e8f0; padding: 6px 12px; border-radius: 16px; font-size: 0.8rem; cursor: pointer; font-weight: 500; }
     .chip.active { background: var(--primary-light); color: white; }
 
-    .fab { position: fixed; bottom: 20px; right: 20px; background: var(--primary-light); color: white; width: 56px; height: 56px; border-radius: 28px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer; border: none; }
+    /* 保存ボタン */
+    .btn-save {
+      background: #16a34a; color: white; border: none; width: 100%; padding: 14px;
+      font-size: 1.1rem; font-weight: bold; border-radius: 8px; margin-top: 16px;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.1); cursor: pointer;
+    }
+    .btn-save:active { background: #15803d; }
+
+    /* 初回 担当者選択 Modal */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 400; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .modal-card { background: white; border-radius: 12px; width: 100%; max-width: 360px; padding: 20px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+    .modal-card h3 { margin-bottom: 12px; color: var(--primary); }
+
+    .fab { position: fixed; bottom: 20px; right: 20px; background: var(--primary-light); color: white; width: 56px; height: 56px; border-radius: 28px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer; border: none; z-index: 90; }
   </style>
 </head>
 <body>
@@ -107,33 +125,45 @@
 
   <div id="status-bar">準備完了</div>
 
-  <!-- サイドメニュー -->
+  <!-- 初回 担当者選択モーダル -->
+  <div class="modal-overlay" id="staff-modal" style="display: none;">
+    <div class="modal-card">
+      <h3>担当者を選択してください</h3>
+      <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 16px;">利用を開始するスタッフを選択します</p>
+      <select class="form-control" id="modal-staff-select" style="margin-bottom: 16px;">
+        <option value="">担当者を選択...</option>
+      </select>
+      <button class="btn-save" style="margin-top:0;" onclick="confirmStaffSelection()">確定して開始</button>
+    </div>
+  </div>
+
+  <!-- ドロワーメニュー -->
   <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
   <div class="drawer" id="drawer">
     <h3>メニュー</h3>
     <ul>
       <li onclick="showView('calendar')">📅 カレンダー/TOP</li>
       <li onclick="openNewUrikake()">➕ 新規売掛登録</li>
-      <li onclick="openNewKaikake()">➕ 新規買掛登録</li>
-      <li onclick="showMasterView('kokyaku')">👥 顧客マスタ編集</li>
-      <li onclick="showMasterView('nakaoroshi')">🏢 仲卸マスタ編集</li>
-      <li onclick="showMasterView('tando')">👨‍💼 担当者マスタ編集</li>
+      <li onclick="showMasterView('kokyaku')">👥 顧客マスタ一覧</li>
+      <li onclick="showMasterView('nakaoroshi')">🏢 仲卸マスタ一覧</li>
+      <li onclick="showMasterView('tando')">👨‍💼 担当者マスタ一覧</li>
+      <li onclick="resetStaffCache()" style="color:#dc2626; margin-top:20px;">🔄 担当者再選択（キャッシュ消去）</li>
     </ul>
   </div>
 
   <div class="container">
-    <!-- 1. カレンダービュー -->
+    <!-- 1. カレンダー表示画面 -->
     <div id="view-calendar">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;" id="cal-header-nav">
         <button class="btn-sm" style="background:#64748b" onclick="moveMonth(-1)">◀ 前月</button>
-        <h2 id="cal-month-title" style="font-size: 1rem;">2026年 7月</h2>
+        <h2 id="cal-month-title" style="font-size: 1rem;"></h2>
         <button class="btn-sm" style="background:#64748b" onclick="moveMonth(1)">次月 ▶</button>
       </div>
       <div id="calendar-container"></div>
       <div id="day-detail-list" style="margin-top: 16px;"></div>
     </div>
 
-    <!-- 2. 売掛入力フォーム -->
+    <!-- 2. 売掛入力・編集画面 -->
     <div id="view-urikake-form" style="display: none;">
       <div class="view-card">
         <h3 style="margin-bottom: 12px;" id="form-title">売掛登録・編集</h3>
@@ -141,18 +171,18 @@
 
         <div class="form-group">
           <label>依頼件名</label>
-          <input type="text" class="form-control auto-save" id="u-依頼件名" placeholder="例: 〇〇様 本日納品分">
+          <input type="text" class="form-control" id="u-依頼件名" placeholder="例: 〇〇様 本日納品分">
         </div>
 
         <div class="form-group">
           <label>顧客・担当</label>
           <div style="display: flex; gap: 8px;">
-            <select class="form-control auto-save" id="u-顧客ID"><option value="">顧客選択</option></select>
-            <select class="form-control auto-save" id="u-担当ID"><option value="">担当選択</option></select>
+            <select class="form-control" id="u-顧客ID"><option value="">顧客選択</option></select>
+            <select class="form-control" id="u-担当ID" onchange="onStaffChangedInForm()"><option value="">担当選択</option></select>
           </div>
         </div>
 
-        <!-- 6段階 日付＆メモ タブ切替 -->
+        <!-- 6段階 日付＆メモ タブUI -->
         <div class="form-group">
           <label>進捗ステータス・日付・メモ</label>
           <div class="tabs">
@@ -165,15 +195,14 @@
           </div>
 
           <div id="tab-date-container">
-            <!-- 動的に日付とメモを表示 -->
-            <input type="date" class="form-control auto-save" id="u-date-input" style="margin-bottom: 8px;">
-            <textarea class="form-control auto-save" id="u-memo-input" rows="3" placeholder="依頼内容・メモを加算..."></textarea>
+            <input type="date" class="form-control" id="u-date-input" style="margin-bottom: 8px;">
+            <textarea class="form-control" id="u-memo-input" rows="3" placeholder="依頼内容・メモを入力..."></textarea>
           </div>
         </div>
 
-        <!-- 品名・産地絞り込み -->
-        <div class="form-group">
-          <label>品名・産地（青果/水産）</label>
+        <!-- 品名・産地（青果・水産マスタ） -->
+        <div class="form-group" id="item-section">
+          <label>品名・産地マスタ選択</label>
           <div class="chip-group" style="margin-bottom: 8px;">
             <div class="chip active" id="chip-seika" onclick="selectCategory('青果')">青果</div>
             <div class="chip" id="chip-suisan" onclick="selectCategory('水産')">水産</div>
@@ -183,29 +212,31 @@
           </select>
           <div class="chip-group" id="sanchi-chips" style="margin-top: 6px;"></div>
 
-          <input type="text" class="form-control auto-save" id="u-品名" placeholder="品名（直接入力可能）" style="margin-top: 8px;">
-          <input type="text" class="form-control auto-save" id="u-産地" placeholder="産地（直接入力可能）" style="margin-top: 4px;">
+          <input type="text" class="form-control" id="u-品名" placeholder="品名（直接入力可能）" style="margin-top: 8px;">
+          <input type="text" class="form-control" id="u-産地" placeholder="産地（直接入力可能）" style="margin-top: 4px;">
         </div>
 
-        <!-- 金額（テンキー連動） -->
-        <div class="form-group">
-          <label>単価 / 販売金額</label>
+        <!-- 金額入力（テンキー連動＆自動スクロール） -->
+        <div class="form-group" id="price-section">
+          <label>単価 / 販売金額（タップでテンキー表示）</label>
           <div style="display: flex; gap: 8px;">
-            <input type="number" class="form-control numpad-trigger auto-save" id="u-単価" placeholder="単価" readonly onclick="openNumpad('u-単価')">
-            <input type="number" class="form-control numpad-trigger auto-save" id="u-販売金額" placeholder="販売金額" readonly onclick="openNumpad('u-販売金額')">
+            <input type="number" class="form-control" id="u-単価" placeholder="単価" readonly onclick="openNumpad('u-単価')">
+            <input type="number" class="form-control" id="u-販売金額" placeholder="販売金額" readonly onclick="openNumpad('u-販売金額')">
           </div>
         </div>
 
-        <button class="btn-sm" style="background:#64748b; width:100%; padding:10px; margin-top:12px;" onclick="showView('calendar')">戻る</button>
+        <!-- 手動保存ボタン -->
+        <button class="btn-save" onclick="saveUrikakeData()">💾 保存する</button>
+        <button class="btn-sm" style="background:#64748b; width:100%; padding:12px; margin-top:8px;" onclick="showView('calendar')">キャンセル・戻る</button>
       </div>
     </div>
 
-    <!-- 3. マスタ編集ビュー -->
+    <!-- 3. マスタ編集・閲覧画面 -->
     <div id="view-master" style="display: none;">
       <div class="view-card">
-        <h3 id="master-title">マスタ編集</h3>
+        <h3 id="master-title">マスタ一覧</h3>
         <div id="master-list" style="margin-top: 12px;"></div>
-        <button class="btn-sm" style="background:#64748b; width:100%; padding:10px; margin-top:12px;" onclick="showView('calendar')">戻る</button>
+        <button class="btn-sm" style="background:#64748b; width:100%; padding:12px; margin-top:12px;" onclick="showView('calendar')">戻る</button>
       </div>
     </div>
   </div>
@@ -240,19 +271,22 @@
     calViewMode: 'month', // 'month' or '2week'
     activeTab: '依頼',
     currentNumTarget: null,
-    currentCategory: '青果'
+    currentCategory: '青果',
+    selectedStaffId: localStorage.getItem("hamasada_staff_id") || ""
   };
+
+  let currentFormData = {};
 
   // 起動時初期化
   window.onload = async () => {
     await fetchAllData();
+    checkStaffSelection();
     renderCalendar();
-    bindAutoSave();
   };
 
-  // 全データ一括読み込み
+  // 全データ取得
   async function fetchAllData() {
-    updateStatus("データ読み込み中...", "saving");
+    updateStatus("データ同期中...", "saving");
     try {
       const res = await fetch(GAS_URL, {
         method: "POST",
@@ -269,24 +303,37 @@
     }
   }
 
-  // 自動保存の設定（カーソル移動・選択変更で送信）
-  function bindAutoSave() {
-    document.querySelectorAll('.auto-save').forEach(elem => {
-      elem.addEventListener('change', debounceSave);
-      elem.addEventListener('blur', debounceSave);
-    });
+  // 初回 担当者選択チェック
+  function checkStaffSelection() {
+    if (!appState.selectedStaffId) {
+      document.getElementById("staff-modal").style.display = "flex";
+    }
   }
 
-  let saveTimer = null;
-  function debounceSave() {
-    clearTimeout(saveTimer);
-    saveTimer = setTimeout(autoSaveCurrentForm, 800);
+  function confirmStaffSelection() {
+    const val = document.getElementById("modal-staff-select").value;
+    if (!val) { alert("担当者を選択してください"); return; }
+    appState.selectedStaffId = val;
+    localStorage.setItem("hamasada_staff_id", val);
+    document.getElementById("staff-modal").style.display = "none";
   }
 
-  async function autoSaveCurrentForm() {
-    updateStatus("スプレッドシート保存中...", "saving");
-    
-    // タブの値を現在のデータオブジェクトに同期
+  function resetStaffCache() {
+    localStorage.removeItem("hamasada_staff_id");
+    appState.selectedStaffId = "";
+    location.reload();
+  }
+
+  function onStaffChangedInForm() {
+    const val = document.getElementById("u-担当ID").value;
+    if(val) {
+      appState.selectedStaffId = val;
+      localStorage.setItem("hamasada_staff_id", val);
+    }
+  }
+
+  // 売掛データ保存（手動）
+  async function saveUrikakeData() {
     syncTabValueToState();
 
     const formData = {
@@ -308,6 +355,8 @@
       "キャンセル理由": currentFormData["キャンセル理由"] || ""
     };
 
+    updateStatus("スプレッドシートに保存中...", "saving");
+
     try {
       const res = await fetch(GAS_URL, {
         method: "POST",
@@ -315,16 +364,16 @@
       });
       const json = await res.json();
       if(json.status === "success") {
-        if(!formData["売掛ID"]) document.getElementById("u-id").value = json.data["売掛ID"];
-        updateStatus("自動保存完了", "saved");
+        updateStatus("保存完了しました", "saved");
         await fetchAllData();
+        showView("calendar");
+      } else {
+        updateStatus("保存失敗: " + json.message, "");
       }
     } catch(e) {
-      updateStatus("保存失敗", "");
+      updateStatus("通信エラーで保存できませんでした", "");
     }
   }
-
-  let currentFormData = {};
 
   // 日付＆メモ タブ切り替え
   function switchDateTab(tabName) {
@@ -354,44 +403,62 @@
     currentFormData[memoKey] = document.getElementById("u-memo-input").value;
   }
 
-  // カレンダー描画
+  // カレンダー描画（月表示 / 2週間表示）
   function renderCalendar() {
     const container = document.getElementById("calendar-container");
     container.innerHTML = "";
 
     const grid = document.createElement("div");
-    grid.className = `calendar-grid ${appState.calViewMode === '2week' ? 'calendar-2week' : ''}`;
+    grid.className = "calendar-grid";
 
     const headers = ["日","月","火","水","木","金","土"];
-    headers.forEach(h => {
-      grid.innerHTML += `<div class="cal-header">${h}</div>`;
-    });
+    headers.forEach(h => { grid.innerHTML += `<div class="cal-header">${h}</div>`; });
 
-    const year = appState.currentDate.getFullYear();
-    const month = appState.currentDate.getMonth();
-    document.getElementById("cal-month-title").innerText = `${year}年 ${month + 1}月`;
+    if (appState.calViewMode === 'month') {
+      document.getElementById("cal-header-nav").style.display = "flex";
+      const year = appState.currentDate.getFullYear();
+      const month = appState.currentDate.getMonth();
+      document.getElementById("cal-month-title").innerText = `${year}年 ${month + 1}月`;
 
-    const firstDay = new Date(year, month, 1).getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const firstDay = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-    // 当月の日数描画
-    for(let i=0; i<firstDay; i++) { grid.innerHTML += `<div class="cal-day"></div>`; }
+      for(let i=0; i<firstDay; i++) { grid.innerHTML += `<div class="cal-day"></div>`; }
 
-    for(let d=1; d<=daysInMonth; d++) {
-      const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-      const icons = getIconsForDate(dateStr);
+      for(let d=1; d<=daysInMonth; d++) {
+        const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        appendDayCell(grid, d, dateStr);
+      }
+    } else {
+      // 2週間表示（今週日曜〜来週土曜の14日間）
+      document.getElementById("cal-header-nav").style.display = "none";
+      const today = new Date();
+      const startSun = new Date(today);
+      startSun.setDate(today.getDate() - today.getDay()); // 今週の日曜日
 
-      grid.innerHTML += `
-        <div class="cal-day" onclick="onDateClick('${dateStr}')">
-          <div class="day-num">${d}</div>
-          <div class="cal-icons">${icons.join('')}</div>
-        </div>
-      `;
+      for(let i=0; i<14; i++) {
+        const d = new Date(startSun);
+        d.setDate(startSun.getDate() + i);
+        const dateStr = d.toISOString().split('T')[0];
+        const label = `${d.getMonth()+1}/${d.getDate()}`;
+        appendDayCell(grid, label, dateStr);
+      }
     }
     container.appendChild(grid);
   }
 
-  // 日付枠内の 4分割アイコン判定
+  function appendDayCell(grid, displayLabel, dateStr) {
+    const isToday = dateStr === getTodayString();
+    const icons = getIconsForDate(dateStr);
+
+    grid.innerHTML += `
+      <div class="cal-day ${isToday ? 'today' : ''}" onclick="onDateClick('${dateStr}')">
+        <div class="day-num">${displayLabel}</div>
+        <div class="cal-icons">${icons.join('')}</div>
+      </div>
+    `;
+  }
+
   function getIconsForDate(dateStr) {
     let icons = [];
     appState.urikake.forEach(u => {
@@ -403,16 +470,16 @@
       if(k.発注日 === dateStr) icons.push("👄");
       if(k.入荷日 === dateStr) icons.push("📦");
     });
-    return icons.slice(0, 4); // 最大4個
+    return icons.slice(0, 4);
   }
 
   function onDateClick(dateStr) {
     const list = document.getElementById("day-detail-list");
-    list.innerHTML = `<h4>${dateStr} の案件</h4>`;
+    list.innerHTML = `<h4 style="margin-bottom:8px;">📅 ${dateStr} の案件</h4>`;
 
     const items = appState.urikake.filter(u => u.依頼日 === dateStr || u.納品日 === dateStr);
     if(items.length === 0) {
-      list.innerHTML += `<p style="font-size:0.85rem; color:#64748b; padding:8px;">該当するデータはありません</p>`;
+      list.innerHTML += `<p style="font-size:0.85rem; color:#64748b; padding:8px; background:white; border-radius:6px;">該当するデータはありません</p>`;
       return;
     }
 
@@ -424,13 +491,13 @@
             <div class="title">${item.依頼件名 || '（無題）'}</div>
             <div class="sub">顧客: ${kokyaku.顧客名 || '未設定'} | 品名: ${item.品名 || '-'}</div>
           </div>
-          <div>✏️</div>
+          <div style="font-size:1.2rem;">✏️</div>
         </div>
       `;
     });
   }
 
-  // 品名・産地連動
+  // カテゴリ切替 & 品名コンボボックス連動
   function selectCategory(cat) {
     appState.currentCategory = cat;
     document.getElementById("chip-seika").classList.toggle("active", cat === '青果');
@@ -438,39 +505,42 @@
 
     const select = document.getElementById("u-item-select");
     select.innerHTML = `<option value="">品名を選択...</option>`;
-    const items = cat === '青果' ? appState.seika : appState.suisan;
+    
+    const rawList = cat === '青果' ? appState.seika : appState.suisan;
+    const uniqueNames = [...new Set(rawList.map(i => i.品名 || i.名 || i["品名"] || "").filter(Boolean))];
 
-    const uniqueItems = [...new Set(items.map(i => i.品名))];
-    uniqueItems.forEach(item => {
-      select.innerHTML += `<option value="${item}">${item}</option>`;
+    uniqueNames.forEach(name => {
+      select.innerHTML += `<option value="${name}">${name}</option>`;
     });
   }
 
   function onItemChange() {
     const val = document.getElementById("u-item-select").value;
+    if(!val) return;
     document.getElementById("u-品名").value = val;
 
-    const items = appState.currentCategory === '青果' ? appState.seika : appState.suisan;
-    const sanchis = items.filter(i => i.品名 === val).map(i => i.産地);
+    const rawList = appState.currentCategory === '青果' ? appState.seika : appState.suisan;
+    const sanchis = rawList.filter(i => (i.品名 || i.名) === val).map(i => i.産地).filter(Boolean);
 
     const sanchiContainer = document.getElementById("sanchi-chips");
     sanchiContainer.innerHTML = "";
     [...new Set(sanchis)].forEach(s => {
-      if(s) {
-        sanchiContainer.innerHTML += `<div class="chip" onclick="document.getElementById('u-産地').value='${s}'; debounceSave();">${s}</div>`;
-      }
+      sanchiContainer.innerHTML += `<div class="chip" onclick="document.getElementById('u-産地').value='${s}'">${s}</div>`;
     });
-    debounceSave();
   }
 
-  // テンキー操作
+  // テンキー＆自動スクロール
   function openNumpad(targetId) {
     appState.currentNumTarget = document.getElementById(targetId);
     document.getElementById("numpad").classList.add("open");
+
+    // テンキー上の要素が見える位置に強制スクロール
+    setTimeout(() => {
+      document.getElementById("price-section").scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
   }
   function closeNumpad() {
     document.getElementById("numpad").classList.remove("open");
-    debounceSave();
   }
   function npInput(val) {
     if(!appState.currentNumTarget) return;
@@ -481,7 +551,7 @@
     appState.currentNumTarget.value = appState.currentNumTarget.value.slice(0, -1);
   }
 
-  // 画面切替コントロール
+  // 画面移動
   function showView(viewName) {
     document.getElementById("view-calendar").style.display = viewName === 'calendar' ? 'block' : 'none';
     document.getElementById("view-urikake-form").style.display = viewName === 'urikake' ? 'block' : 'none';
@@ -497,6 +567,8 @@
     document.getElementById("u-産地").value = "";
     document.getElementById("u-単価").value = "";
     document.getElementById("u-販売金額").value = "";
+    document.getElementById("u-担当ID").value = appState.selectedStaffId;
+
     selectCategory('青果');
     switchDateTab('依頼');
     showView('urikake');
@@ -509,17 +581,18 @@
     document.getElementById("u-id").value = item.売掛ID;
     document.getElementById("u-依頼件名").value = item.依頼件名 || "";
     document.getElementById("u-顧客ID").value = item.顧客ID || "";
-    document.getElementById("u-担当ID").value = item.担当ID || "";
+    document.getElementById("u-担当ID").value = item.担当ID || appState.selectedStaffId;
     document.getElementById("u-品名").value = item.品名 || "";
     document.getElementById("u-産地").value = item.産地 || "";
     document.getElementById("u-単価").value = item.単価 || "";
     document.getElementById("u-販売金額").value = item.販売金額 || "";
+
     selectCategory('青果');
     switchDateTab('依頼');
     showView('urikake');
   }
 
-  // マスタ編集表示
+  // マスタ表示
   function showMasterView(type) {
     showView('master');
     const list = document.getElementById("master-list");
@@ -527,41 +600,49 @@
 
     const dataMap = { kokyaku: appState.kokyaku, nakaoroshi: appState.nakaoroshi, tando: appState.tando };
     const titleMap = { kokyaku: "顧客マスタ", nakaoroshi: "仲卸マスタ", tando: "担当者マスタ" };
-    const nameKeyMap = { kokyaku: "顧客名", nakaoroshi: "仲卸名", tando: "担当名" };
-    const telKeyMap = { kokyaku: "顧客TEL", nakaoroshi: "仲卸TEL", tando: "担当TEL" };
-    const mailKeyMap = { kokyaku: "顧客メール", nakaoroshi: "仲卸メール", tando: "担当メール" };
 
     document.getElementById("master-title").innerText = titleMap[type];
 
-    dataMap[type].forEach(m => {
-      const name = m[nameKeyMap[type]] || "（名前なし）";
-      const tel = m[telKeyMap[type]] || "";
-      const mail = m[mailKeyMap[type]] || "";
+    (dataMap[type] || []).forEach(m => {
+      const name = m.顧客名 || m.仲卸名 || m.担当名 || "（名前なし）";
+      const tel = m.顧客TEL || m.仲卸TEL || m.担当TEL || "";
+      const mail = m.顧客メール || m.仲卸メール || m.担当メール || "";
 
       list.innerHTML += `
         <div class="list-item">
           <div>
             <div class="title">${name}</div>
-            <div class="sub">TEL: ${tel}</div>
+            <div class="sub">TEL: ${tel || 'なし'}</div>
           </div>
-          <div class="action-icons">
-            ${tel ? `<a href="tel:${tel}">📞</a>` : ''}
-            ${mail ? `<a href="mailto:${mail}">✉</a>` : ''}
+          <div>
+            ${tel ? `<a href="tel:${tel}" style="text-decoration:none; margin-right:8px;">📞</a>` : ''}
+            ${mail ? `<a href="mailto:${mail}" style="text-decoration:none;">✉</a>` : ''}
           </div>
         </div>
       `;
     });
   }
 
-  // 共通ユーティリティ
+  // ユーティリティ
   function populateDropdowns() {
     const kSelect = document.getElementById("u-顧客ID");
     kSelect.innerHTML = `<option value="">顧客選択</option>`;
     appState.kokyaku.forEach(k => { kSelect.innerHTML += `<option value="${k.顧客ID}">${k.顧客名}</option>`; });
 
     const tSelect = document.getElementById("u-担当ID");
+    const mSelect = document.getElementById("modal-staff-select");
     tSelect.innerHTML = `<option value="">担当選択</option>`;
-    appState.tando.forEach(t => { tSelect.innerHTML += `<option value="${t.担当ID}">${t.担当名}</option>`; });
+    mSelect.innerHTML = `<option value="">担当者を選択...</option>`;
+
+    appState.tando.forEach(t => {
+      tSelect.innerHTML += `<option value="${t.担当ID}">${t.担当名}</option>`;
+      mSelect.innerHTML += `<option value="${t.担当ID}">${t.担当名}</option>`;
+    });
+
+    if (appState.selectedStaffId) {
+      tSelect.value = appState.selectedStaffId;
+      mSelect.value = appState.selectedStaffId;
+    }
   }
 
   function toggleMenu(force) {
