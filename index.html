@@ -349,20 +349,41 @@
     renderCalendar();
   };
 
-  /* --- 日付文字列の正規化（YYYY-MM-DD 形式に統一） --- */
+  /* --- タイムゾーン（UTC/JST）を自動補正して YYYY-MM-DD 形式に揃える強固な関数 --- */
   function normalizeDate(dStr) {
     if (!dStr) return "";
     let str = String(dStr).trim();
+
+    // Dateオブジェクトとして解析（タイムゾーン補正）
+    let d = new Date(str);
+    if (!isNaN(d.getTime())) {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${y}-${m}-${day}`;
+    }
+
+    // フォールバック（文字列処理）
     if (str.includes("T")) str = str.split("T")[0];
     str = str.replace(/\//g, "-");
     const parts = str.split("-");
     if (parts.length === 3) {
-      const y = parts[0];
-      const m = parts[1].padStart(2, "0");
-      const d = parts[2].padStart(2, "0");
-      return `${y}-${m}-${d}`;
+      return `${parts[0]}-${parts[1].padStart(2, "0")}-${parts[2].padStart(2, "0")}`;
     }
     return str;
+  }
+
+  /* --- オブジェクト内の全フィールドから日付（YYYY-MM-DD）を自動探知する --- */
+  function extractAllDatesFromRecord(item) {
+    const dates = [];
+    Object.values(item).forEach(val => {
+      if (!val) return;
+      const normalized = normalizeDate(val);
+      if (/^\d{4}-\d{2}-\d{2}$/.test(normalized)) {
+        dates.push(normalized);
+      }
+    });
+    return dates;
   }
 
   async function fetchAllData() {
@@ -376,7 +397,9 @@
       if(json.status === "success") {
         appState = { ...appState, ...json.data };
         populateDropdowns();
-        updateStatus("同期完了", "saved");
+        const uCount = (appState.urikake || []).length;
+        const kCount = (appState.kaikake || []).length;
+        updateStatus(`同期完了 (売掛:${uCount}件 / 買掛:${kCount}件)`, "saved");
       }
     } catch(e) {
       updateStatus("通信エラー", "");
@@ -531,16 +554,20 @@
     return cell;
   }
 
+  /* --- どの列にあっても全フィールドから日付を検出してアイコンを表示 --- */
   function getIconsForDate(dateStr) {
     let icons = [];
-    appState.urikake.forEach(u => {
-      // どの列に日付が入っていても柔軟に絵文字を出力
-      if(normalizeDate(u.依頼日) === dateStr || normalizeDate(u.見積日) === dateStr) icons.push("👂");
-      else if(normalizeDate(u.納品日) === dateStr) icons.push("🚚");
+    (appState.urikake || []).forEach(u => {
+      const dates = extractAllDatesFromRecord(u);
+      if (dates.includes(dateStr)) {
+        icons.push("👂");
+      }
     });
-    appState.kaikake.forEach(k => {
-      if(normalizeDate(k.発注日) === dateStr || normalizeDate(k.依頼日) === dateStr) icons.push("👄");
-      if(normalizeDate(k.入荷日) === dateStr || normalizeDate(k.納品日) === dateStr) icons.push("📦");
+    (appState.kaikake || []).forEach(k => {
+      const dates = extractAllDatesFromRecord(k);
+      if (dates.includes(dateStr)) {
+        icons.push("👄");
+      }
     });
     return icons;
   }
@@ -565,51 +592,43 @@
     const list = document.getElementById("day-detail-list");
     list.innerHTML = "";
 
-    // 買掛データの検索（日付正規化して判定）
-    const kaikakeItems = appState.kaikake.filter(k => {
-      return [k.発注日, k.入荷日, k.請求日, k.支払日, k.依頼日, k.納品日, k.見積日]
-        .some(d => normalizeDate(d) === dateStr);
-    });
-
-    // 売掛データの検索（日付正規化して判定）
-    const urikakeItems = appState.urikake.filter(u => {
-      return [u.依頼日, u.見積日, u.納品日, u.請求日, u.入金日]
-        .some(d => normalizeDate(d) === dateStr);
-    });
+    // 全フィールドを対象に日付が一致するか探す
+    const kaikakeItems = (appState.kaikake || []).filter(k => extractAllDatesFromRecord(k).includes(dateStr));
+    const urikakeItems = (appState.urikake || []).filter(u => extractAllDatesFromRecord(u).includes(dateStr));
 
     if(kaikakeItems.length === 0 && urikakeItems.length === 0) {
       list.innerHTML = `<p style="font-size:0.85rem; color:#64748b; padding:12px; text-align:center;">この日の登録データはありません</p>`;
     } else {
-      // 1. 買掛優先表示
       kaikakeItems.forEach(item => {
         const nakaoroshi = appState.nakaoroshi.find(n => 
           String(n.仲卸ID || n.ID || Object.values(n)[0]) === String(item.仲卸ID || item.顧客ID)
         ) || {};
-        const id = item.買掛ID || item.ID || Object.values(item)[0];
-        
+        const id = item.買掛ID || item.ID || Object.values(item)[0] || Object.values(item)[1];
+        const title = item.依頼件名 || item.件名 || Object.values(item)[1] || Object.values(item)[2] || '（案件）';
+
         list.innerHTML += `
           <div class="list-item" style="border-left: 4px solid #dc2626;" onclick="closeDetailModal(); openEditForm('${id}', 'kaikake')">
             <div>
-              <div class="title"><span style="background:#fee2e2; color:#dc2626; font-size:0.75rem; padding:2px 6px; border-radius:4px; margin-right:6px;">買掛</span>${item.依頼件名 || item.件名 || '（無題）'}</div>
-              <div class="sub">仲卸: ${nakaoroshi.仲卸名 || nakaoroshi.名前 || '未設定'} | 品名: ${item.品名 || '-'}</div>
+              <div class="title"><span style="background:#fee2e2; color:#dc2626; font-size:0.75rem; padding:2px 6px; border-radius:4px; margin-right:6px;">買掛</span>${title}</div>
+              <div class="sub">仲卸: ${nakaoroshi.仲卸名 || '未設定'} | 品名: ${item.品名 || '-'}</div>
             </div>
             <div style="font-size:1.2rem;">✏️</div>
           </div>
         `;
       });
 
-      // 2. 売掛表示
       urikakeItems.forEach(item => {
         const kokyaku = appState.kokyaku.find(k => 
           String(k.顧客ID || k.ID || Object.values(k)[0]) === String(item.顧客ID)
         ) || {};
-        const id = item.売掛ID || item.ID || Object.values(item)[0];
+        const id = item.売掛ID || item.ID || Object.values(item)[0] || Object.values(item)[1];
+        const title = item.依頼件名 || item.件名 || Object.values(item)[1] || Object.values(item)[2] || '（案件）';
 
         list.innerHTML += `
           <div class="list-item" style="border-left: 4px solid #2563eb;" onclick="closeDetailModal(); openEditForm('${id}', 'urikake')">
             <div>
-              <div class="title"><span style="background:#dbeafe; color:#2563eb; font-size:0.75rem; padding:2px 6px; border-radius:4px; margin-right:6px;">売掛</span>${item.依頼件名 || item.件名 || '（無題）'}</div>
-              <div class="sub">顧客: ${kokyaku.顧客名 || kokyaku.名前 || '未設定'} | 品名: ${item.品名 || '-'}</div>
+              <div class="title"><span style="background:#dbeafe; color:#2563eb; font-size:0.75rem; padding:2px 6px; border-radius:4px; margin-right:6px;">売掛</span>${title}</div>
+              <div class="sub">顧客: ${kokyaku.顧客名 || '未設定'} | 品名: ${item.品名 || '-'}</div>
             </div>
             <div style="font-size:1.2rem;">✏️</div>
           </div>
